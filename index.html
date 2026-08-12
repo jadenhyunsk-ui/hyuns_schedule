@@ -33,7 +33,12 @@
   }
 
   header{ padding:28px 20px 14px; text-align:center; position:relative; }
-  .logout-corner{ position:absolute; top:10px; right:10px; font-size:10.5px; padding:5px 10px; }
+  .logout-corner{
+    position:absolute; top:12px; right:12px; font-size:11px; font-weight:600;
+    padding:5px 12px; border:none; background:rgba(74,124,116,.1); color:var(--teal);
+    box-shadow:none;
+  }
+  .logout-corner:hover{ background:var(--teal); color:#fff; transform:none; box-shadow:none; }
   header .eyebrow{
     font-family:'Noto Sans KR', sans-serif; font-size:14px; color:var(--teal); letter-spacing:.08em;
     margin-bottom:4px; display:flex; align-items:center; justify-content:center; gap:4px; flex-wrap:wrap;
@@ -304,8 +309,15 @@
     border:1px solid var(--paper-line); padding:4px 2px; text-align:center;
     word-break:break-all; overflow-wrap:break-word;
   }
+  .phone-cell{ cursor:pointer; color:var(--teal); font-weight:600; }
+  .phone-cell:hover{ text-decoration:underline; }
   .fee-table th{ background:#F5F0E3; font-weight:700; font-size:9.5px; line-height:1.25; cursor:pointer; }
   .fee-table th:hover{ background:#F0E6CC; }
+
+  /* 학원비 표는 줄바꿈 없이 가로 스크롤로 보여준다 (연락처 표는 위의 고정폭/줄바꿈 유지) */
+  .fee-table-scroll--fees{ overflow-x:auto; }
+  .fee-table--fees{ width:auto; min-width:100%; table-layout:auto; }
+  .fee-table--fees th, .fee-table--fees td{ white-space:nowrap; word-break:normal; padding:5px 8px; }
   .fee-total-row td{ font-weight:700; background:#FAF6EB; }
 
   /* ---- 숙제 체크리스트 ---- */
@@ -572,9 +584,9 @@ const FEE_COLS = [
   {key:'academy', label:'학원명'},
   {key:'cycle', label:'주기'},
   {key:'amount', label:'금액(만원)'},
-  {key:'note', label:'비고'},
   {key:'method', label:'결제수단'},
-  {key:'payer', label:'담당'}
+  {key:'payer', label:'담당'},
+  {key:'note', label:'비고'}
 ];
 
 const DEFAULT_TITLE = "이현 · 규현 일정표";
@@ -1615,6 +1627,22 @@ function buildContactsPanel(){
       const td = document.createElement('td');
       td.textContent = row[key] || '';
       makeDblClickEditable(td, ph, (val)=>{ row[key]=val; markDirty('contacts'); });
+      if(key === 'phone'){
+        td.classList.add('phone-cell');
+        let callTimer = null;
+        td.addEventListener('click', ()=>{
+          clearTimeout(callTimer);
+          callTimer = setTimeout(()=>{
+            const phone = row.phone;
+            if(!phone) return;
+            const who = [row.academy, row.role, phone].filter(Boolean).join(' ');
+            if(confirm(`${who}로 전화를 거시겠습니까?`)){
+              window.location.href = 'tel:' + phone.replace(/[^0-9+]/g,'');
+            }
+          }, 280);
+        });
+        td.addEventListener('dblclick', ()=> clearTimeout(callTimer));
+      }
       tr.appendChild(td);
     });
     if(editMode){
@@ -1671,9 +1699,9 @@ function buildFeeGroupTable(group, gi){
   wrapEl.className = 'fee-table-wrap';
 
   const scrollEl = document.createElement('div');
-  scrollEl.className = 'fee-table-scroll';
+  scrollEl.className = 'fee-table-scroll fee-table-scroll--fees';
   const table = document.createElement('table');
-  table.className = 'fee-table';
+  table.className = 'fee-table fee-table--fees';
 
   const thead = document.createElement('thead');
   const trh = document.createElement('tr');
