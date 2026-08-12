@@ -273,19 +273,9 @@
 <div class="login-overlay" id="loginOverlay">
   <div class="login-card">
     <h2>이현 · 규현 일정표</h2>
-    <p>가족 로그인 후 이용할 수 있어요</p>
-    <form id="loginForm">
-      <div class="login-field">
-        <label for="loginEmail">이메일</label>
-        <input type="email" id="loginEmail" required autocomplete="username">
-      </div>
-      <div class="login-field">
-        <label for="loginPassword">비밀번호</label>
-        <input type="password" id="loginPassword" required autocomplete="current-password">
-      </div>
-      <button type="submit" class="login-submit" id="loginSubmitBtn">로그인</button>
-      <div class="login-error" id="loginError"></div>
-    </form>
+    <p>가족 구글 계정으로 로그인 후 이용할 수 있어요</p>
+    <button type="button" class="login-submit" id="googleLoginBtn">Google로 로그인</button>
+    <div class="login-error" id="loginError"></div>
   </div>
 </div>
 
@@ -1606,31 +1596,29 @@ try{ firebase.initializeApp(firebaseConfig); }catch(e){ console.error(e); }
 
 const loginOverlay = document.getElementById('loginOverlay');
 const appRoot = document.getElementById('appRoot');
-const loginForm = document.getElementById('loginForm');
-const loginEmail = document.getElementById('loginEmail');
-const loginPassword = document.getElementById('loginPassword');
 const loginError = document.getElementById('loginError');
-const loginSubmitBtn = document.getElementById('loginSubmitBtn');
+const googleLoginBtn = document.getElementById('googleLoginBtn');
 const logoutBtn = document.getElementById('logoutBtn');
 
 /* 리스너를 먼저 붙여서, 아래 인증 초기화가 실패해도 버튼이 "먹통"이 되지 않고
-   눌렀을 때 화면에 오류가 뜨도록 한다 (일부 모바일 브라우저는 file:// 에서
-   IndexedDB 저장이 막혀 firebase.auth() 초기화가 조용히 실패할 수 있음). */
-loginForm.addEventListener('submit', (e)=>{
-  e.preventDefault();
+   눌렀을 때 화면에 오류가 뜨도록 한다. */
+googleLoginBtn.addEventListener('click', ()=>{
   loginError.textContent = '';
-  loginSubmitBtn.disabled = true;
+  googleLoginBtn.disabled = true;
   try{
-    firebase.auth().signInWithEmailAndPassword(loginEmail.value.trim(), loginPassword.value)
+    const provider = new firebase.auth.GoogleAuthProvider();
+    firebase.auth().signInWithPopup(provider)
       .catch((err)=>{
         console.error('login error', err);
-        loginError.textContent = `로그인 실패 (${err.code || 'unknown'}): ${err.message || err}`;
+        if(err.code !== 'auth/popup-closed-by-user'){
+          loginError.textContent = `로그인 실패 (${err.code || 'unknown'}): ${err.message || err}`;
+        }
       })
-      .finally(()=>{ loginSubmitBtn.disabled = false; });
+      .finally(()=>{ googleLoginBtn.disabled = false; });
   }catch(err){
     console.error('login call error', err);
     loginError.textContent = `로그인 오류: ${err.message || err}`;
-    loginSubmitBtn.disabled = false;
+    googleLoginBtn.disabled = false;
   }
 });
 
@@ -1652,7 +1640,6 @@ async function initAuth(){
         loginOverlay.style.display = 'none';
         appRoot.style.display = '';
         loginError.textContent = '';
-        loginForm.reset();
         startApp();
       } else {
         loginOverlay.style.display = 'flex';
