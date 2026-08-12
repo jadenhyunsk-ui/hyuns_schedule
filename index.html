@@ -20,6 +20,7 @@
 
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
+  html{ overflow-x:hidden; }
   body{
     background:var(--paper);
     background-image:linear-gradient(var(--paper-line) 1px, transparent 1px);
@@ -27,6 +28,8 @@
     color:var(--ink);
     font-family:'Noto Sans KR', sans-serif;
     padding-bottom:60px;
+    overflow-x:hidden;
+    width:100%;
   }
 
   header{ padding:28px 20px 14px; text-align:center; position:relative; }
@@ -55,9 +58,10 @@
   }
   header p{ margin:6px 0 0; font-size:12.5px; color:var(--ink-soft); border-radius:6px; padding:2px 4px; }
 
-  /* ---- 더블클릭(더블탭)으로 바로 수정되는 공통 필드 ---- */
-  .ed-field{ cursor:text; border-radius:4px; }
-  .ed-field:hover{ background:rgba(74,124,116,.07); }
+  /* ---- 더블클릭(더블탭)으로 바로 수정되는 공통 필드 (수정모드에서만 편집 힌트 표시) ---- */
+  .ed-field{ border-radius:4px; }
+  body.edit-mode .ed-field{ cursor:text; }
+  body.edit-mode .ed-field:hover{ background:rgba(74,124,116,.07); }
   .ed-field[contenteditable="true"]{
     outline:none;
     background:rgba(74,124,116,.14);
@@ -76,12 +80,12 @@
     flex-wrap:wrap;
   }
   .sync-pill{ font-size:11px; color:var(--ink-soft); white-space:nowrap; }
-  .top-bar-actions{ display:flex; gap:8px; }
+  .top-bar-actions{ display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; max-width:100%; }
   .btn{
     font-family:'Noto Sans KR', sans-serif;
-    font-size:12.5px;
+    font-size:11.5px;
     font-weight:600;
-    padding:8px 14px;
+    padding:6px 10px;
     border-radius:20px;
     border:2px solid var(--paper-line);
     background:var(--card-bg);
@@ -92,6 +96,8 @@
   }
   .btn:hover{ border-color:var(--teal); color:var(--teal); transform:translateY(-1px); box-shadow:0 3px 8px rgba(51,48,42,.1); }
   .btn.ghost{ background:transparent; box-shadow:none; }
+  .btn.active{ background:var(--teal); border-color:var(--teal); color:#fff; }
+  .btn.active:hover{ color:#fff; }
 
   .save-toast{
     position:fixed; bottom:18px; left:50%; transform:translateX(-50%) translateY(20px);
@@ -99,6 +105,40 @@
     opacity:0; transition:all .25s ease; pointer-events:none; z-index:50;
   }
   .save-toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  /* ---- 이전 일정(스냅샷) 모달 ---- */
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(51,48,42,.45); z-index:90;
+    display:flex; align-items:center; justify-content:center; padding:20px;
+  }
+  .modal-card{
+    background:var(--card-bg); border-radius:16px; width:100%; max-width:360px;
+    max-height:80vh; display:flex; flex-direction:column; box-shadow:0 8px 28px rgba(0,0,0,.25);
+  }
+  .modal-header{
+    display:flex; align-items:center; justify-content:space-between; padding:14px 16px;
+    border-bottom:1px solid var(--paper-line); flex-shrink:0;
+  }
+  .modal-header h3{ margin:0; font-size:16px; color:var(--ink); }
+  .modal-close{
+    border:none; background:transparent; font-size:20px; line-height:1; color:var(--ink-soft); cursor:pointer;
+    padding:2px 6px;
+  }
+  .modal-close:hover{ color:var(--coral); }
+  .modal-body{ padding:12px 16px; overflow-y:auto; }
+  .snap-empty{ font-size:12.5px; color:var(--ink-soft); text-align:center; padding:20px 4px; line-height:1.6; }
+  .snap-item{
+    display:flex; align-items:center; gap:8px; padding:10px 0; border-bottom:1px dashed var(--paper-line);
+  }
+  .snap-item:last-child{ border-bottom:none; }
+  .snap-info{ flex:1; min-width:0; }
+  .snap-title{ font-size:13.5px; font-weight:700; color:var(--ink); word-break:break-all; }
+  .snap-date{ font-size:11px; color:var(--ink-soft); margin-top:2px; }
+  .snap-load-btn{
+    font-size:12px; font-weight:600; padding:6px 12px; border-radius:16px; border:2px solid var(--paper-line);
+    background:var(--card-bg); color:var(--teal); cursor:pointer; flex-shrink:0;
+  }
+  .snap-load-btn:hover{ border-color:var(--teal); }
 
   .tabs{ display:flex; gap:6px; max-width:640px; margin:14px auto 0; padding:0 16px; overflow-x:auto; }
   .tab{
@@ -131,7 +171,8 @@
   /* ---- 시간 세로줄 그리드 ---- */
   .time-grid{
     display:grid;
-    grid-template-columns:40px 1fr 1fr;
+    grid-template-columns:36px minmax(0,1fr) minmax(0,1fr);
+    max-width:100%;
     border:1px solid var(--paper-line);
     border-radius:10px;
     overflow:hidden;
@@ -153,13 +194,13 @@
 
   .tg-event{
     position:relative; margin:1px 2px; border-radius:8px; padding:10px 6px 10px 12px;
-    font-size:11.5px; line-height:1.3; overflow:hidden;
+    font-size:11.5px; line-height:1.3; min-width:0;
     box-shadow:0 1px 2px rgba(51,48,42,.1);
   }
-  .tg-event-head{ display:flex; align-items:center; gap:4px; }
-  .tg-event .time{ font-size:10px; font-weight:700; letter-spacing:.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; }
-  .tg-event .name{ font-family:'Noto Sans KR', sans-serif; font-weight:700; font-size:13px; line-height:1.22; margin:1px 0; }
-  .tg-event .meta{ font-size:9.5px; line-height:1.25; opacity:.85; }
+  .tg-event-head{ display:flex; align-items:center; gap:4px; min-width:0; }
+  .tg-event .time{ font-size:10px; font-weight:700; letter-spacing:.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; min-width:0; }
+  .tg-event .name{ font-family:'Noto Sans KR', sans-serif; font-weight:700; font-size:13px; line-height:1.22; margin:1px 0; word-break:break-word; }
+  .tg-event .meta{ font-size:9.5px; line-height:1.25; opacity:.85; word-break:break-word; }
   .tg-event.compact .name{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .tg-event.compact .meta{ display:none; }
   .tg-event .ed-field:empty::before{ opacity:.6; }
@@ -177,11 +218,27 @@
   .cat-picker-row.active{ background:#EAF1EF; font-weight:700; }
   .cat-picker-row i{ width:12px; height:12px; border-radius:4px; flex-shrink:0; display:inline-block; }
 
-  .tg-grip{ position:absolute; left:0; top:0; bottom:0; width:10px; cursor:grab; touch-action:none; }
-  .tg-resize{ position:absolute; left:0; right:0; bottom:0; height:10px; cursor:ns-resize; touch-action:none; }
-  .tg-resize-top{ position:absolute; left:10px; right:0; top:0; height:10px; cursor:ns-resize; touch-action:none; z-index:1; }
-  .tg-grip:active{ cursor:grabbing; }
+  /* ---- 수정모드: 일정 조절(위/아래 작은 손잡이) & 이동(길게 누르기) ---- */
+  .tg-handle{
+    position:absolute; left:50%; transform:translateX(-50%);
+    width:16px; height:16px; border-radius:50%;
+    background:#fff; border:2px solid var(--teal); box-shadow:0 1px 3px rgba(0,0,0,.25);
+    cursor:ns-resize; touch-action:none; z-index:3;
+  }
+  .tg-handle-top{ top:-8px; }
+  .tg-handle-bottom{ bottom:-8px; }
+  body.edit-mode .tg-event{ cursor:grab; }
   .tg-event{ -webkit-touch-callout:none; }
+  .tg-event.dragging{ cursor:grabbing; opacity:.85; }
+
+  /* ---- 삭제 × 버튼 (수정모드에서만 생성됨) ---- */
+  .del-x{
+    border:none; background:rgba(224,121,95,.16); color:var(--coral);
+    width:18px; height:18px; border-radius:50%; font-size:13px; line-height:1; font-weight:700;
+    cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; padding:0;
+  }
+  .del-x:hover{ background:rgba(224,121,95,.32); }
+  .tg-event .del-x{ position:absolute; top:3px; right:3px; z-index:3; }
 
   /* ---- 카테고리(범례) 관리 ---- */
   .legend{ max-width:640px; margin:22px auto 0; padding:0 16px; display:flex; flex-wrap:wrap; gap:7px 9px; align-items:center; }
@@ -189,9 +246,47 @@
     display:flex; align-items:center; gap:5px; font-size:11.5px; line-height:1.4; color:var(--ink-soft);
     background:#F4EFE1; border-radius:20px; padding:3px 8px 3px 5px; -webkit-touch-callout:none;
   }
-  .cat-color{ width:16px; height:16px; padding:0; border:1px solid rgba(0,0,0,.2); border-radius:50%; cursor:pointer; background:none; }
-  .cat-color::-webkit-color-swatch-wrapper{ padding:0; border-radius:50%; }
-  .cat-color::-webkit-color-swatch{ border:none; border-radius:50%; }
+  .cat-label{
+    width:10em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .cat-color{ width:16px; height:16px; padding:0; border:1px solid rgba(0,0,0,.2); border-radius:50%; cursor:pointer; }
+  .cat-color:disabled{ cursor:default; }
+
+  /* ---- 색상 선택 팝업 (프리셋 / 사용자화 원형 색상표) ---- */
+  .color-popup{
+    position:fixed; z-index:200; background:#fff; border:1px solid var(--paper-line); border-radius:12px;
+    box-shadow:0 6px 20px rgba(0,0,0,.18); padding:10px; width:210px;
+  }
+  .color-popup-tabs{ display:flex; gap:4px; margin-bottom:8px; }
+  .color-tab{
+    flex:1; font-size:12px; font-weight:600; padding:6px 4px; border-radius:8px; border:none;
+    background:#F3ECDC; color:var(--ink-soft); cursor:pointer;
+  }
+  .color-tab.active{ background:var(--teal); color:#fff; }
+  .color-grid{ display:grid; grid-template-columns:repeat(5, 1fr); gap:6px; }
+  .color-swatch{
+    position:relative; width:100%; aspect-ratio:1; border-radius:50%; border:1px solid rgba(0,0,0,.12);
+    cursor:pointer; padding:0;
+  }
+  .color-swatch-check{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    color:#33302A; font-size:13px; font-weight:700; text-shadow:0 0 3px rgba(255,255,255,.9);
+  }
+  .color-wheel-wrap{ display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .color-wheel-box{ position:relative; }
+  .color-wheel-canvas{ border-radius:50%; touch-action:none; display:block; }
+  .color-wheel-cursor{
+    position:absolute; width:14px; height:14px; border-radius:50%; border:2px solid #fff;
+    box-shadow:0 0 0 1px rgba(0,0,0,.35); transform:translate(-50%,-50%); pointer-events:none;
+  }
+  .color-wheel-light{ width:100%; accent-color:var(--teal); }
+  .color-preview-row{ display:flex; align-items:center; gap:8px; margin-top:2px; }
+  .color-preview{ width:22px; height:22px; border-radius:50%; border:1px solid rgba(0,0,0,.15); flex-shrink:0; }
+  .color-hex{ font-size:12px; color:var(--ink-soft); }
+  .color-apply-btn{
+    display:block; width:100%; margin-top:8px; padding:7px; border-radius:8px; border:none;
+    background:var(--teal); color:#fff; font-size:12.5px; font-weight:600; cursor:pointer;
+  }
   .cat-add, .add-row-btn, .add-item-btn{
     font-size:11.5px; color:var(--ink-soft); background:transparent; border:2px dashed var(--paper-line);
     border-radius:20px; padding:5px 12px; cursor:pointer;
@@ -232,14 +327,26 @@
 
   footer{ text-align:center; margin-top:22px; padding:0 20px; font-size:11.5px; line-height:1.6; color:var(--ink-soft); }
 
-  @media (max-width:380px){
-    .time-grid{ grid-template-columns:34px 1fr 1fr; }
-    .tg-event{ padding:9px 4px 9px 11px; font-size:11px; }
-    .tg-event .name{ font-size:12px; }
-    .tg-event .meta{ font-size:9px; }
-    .school-badge{ font-size:10.5px; }
-    .legend span, footer{ font-size:11px; }
-    .fee-table{ font-size:10.5px; }
+  @media (max-width:480px){
+    .top-bar{ padding:0 10px; gap:6px; }
+    .btn{ font-size:10.5px; padding:5px 8px; }
+    main, .legend, .hw-wrap{ padding-left:10px; padding-right:10px; }
+    header{ padding:22px 12px 12px; }
+    .time-grid{ grid-template-columns:32px minmax(0,1fr) minmax(0,1fr); }
+    .tg-event{ padding:8px 4px 8px 10px; font-size:10.5px; }
+    .tg-event .name{ font-size:11.5px; }
+    .tg-event .meta{ font-size:8.5px; }
+    .tg-event .time{ font-size:9px; }
+    .school-badge{ font-size:10px; }
+    .legend span, footer{ font-size:10.5px; }
+    .fee-table{ font-size:10px; }
+    .hw-kids{ gap:8px; }
+    .cat-chip{ font-size:10.5px; }
+  }
+  @media (max-width:360px){
+    .time-grid{ grid-template-columns:30px minmax(0,1fr) minmax(0,1fr); }
+    .tg-event{ padding:7px 3px 7px 8px; font-size:10px; }
+    .tg-event .name{ font-size:11px; }
   }
 
   /* ---- 로그인 ---- */
@@ -300,8 +407,10 @@
 <div class="top-bar">
   <div class="sync-pill" id="syncPill">🟡 연결 중…</div>
   <div class="top-bar-actions">
+    <button class="btn" id="editModeBtn">✏️ 수정</button>
     <button class="btn ghost" id="exportBtn">⬇️ 엑셀로 내보내기</button>
-    <button class="btn ghost" id="resetBtn">원본으로 초기화</button>
+    <button class="btn ghost" id="fixBtn">📌 일정 fix</button>
+    <button class="btn ghost" id="viewSnapshotsBtn">🕰️ 이전 일정 보기</button>
     <button class="btn ghost" id="logoutBtn">로그아웃</button>
   </div>
 </div>
@@ -318,7 +427,17 @@
 
 <div class="legend" id="legend"></div>
 
-<footer>텍스트를 더블클릭(더블탭)하면 바로 수정돼요. 빈 시간칸을 더블클릭하면 새 일정이 추가돼요.<br>색 점을 눌러 카테고리를 고르면 이름도 자동으로 채워져요. 위/아래 손잡이로 시작·종료 시간을 조절하세요.<br>삭제하려면 항목을 길게 눌러주세요.</footer>
+<footer>상단 "✏️ 수정" 버튼을 눌러 수정모드를 켜야 편집할 수 있어요.<br>텍스트를 더블클릭(더블탭)하면 바로 수정돼요. 빈 시간칸을 더블클릭하면 새 일정이 추가돼요.<br>색 점을 눌러 카테고리를 고르고, 위/아래 작은 손잡이로 시작·종료 시간을 조절하세요. 일정을 길게 누르면 통째로 옮길 수 있어요.<br>삭제하려면 × 버튼을 눌러주세요.</footer>
+
+<div class="modal-overlay" id="snapshotModal" style="display:none;">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3>이전 일정 보기</h3>
+      <button class="modal-close" id="snapshotCloseBtn" type="button">×</button>
+    </div>
+    <div class="modal-body" id="snapshotList"></div>
+  </div>
+</div>
 
 <div class="save-toast" id="toast">저장됨</div>
 
@@ -330,10 +449,12 @@
 <script>
 /* ===== 기본 데이터 ===== */
 const PASTEL_PALETTE = [
-  '#F5C6C6', '#F6D3B8', '#F5E3AE', '#E3EAB0',
-  '#C3DDB0', '#B0D9C6', '#AEDDD9', '#AED3E0',
-  '#AFC2E8', '#BBB6E8', '#D2B8E8', '#E6B8DE',
-  '#F0B8CC', '#E0C2AE', '#D6CFC0', '#C7CDD6'
+  '#FFB5E8', '#FF9CEE', '#FFCCF9', '#FCC2FF', '#F6A6FF',
+  '#B28DFF', '#C5A3FF', '#D5AAFF', '#ECD4FF', '#FBE4FF',
+  '#DCD3FF', '#A79AFF', '#B5B9FF', '#97A2FF', '#AFCBFF',
+  '#AFF8DB', '#C4FAF8', '#85E3FF', '#ACE7FF', '#6EB5FF',
+  '#BFFCC6', '#DBFFD6', '#F3FFE3', '#E7FFAC', '#FFFFD1',
+  '#FFC9DE', '#FFABAB', '#FFBEBC', '#FFCBC1', '#FFF5BA'
 ];
 
 const DEFAULT_CATEGORIES = [
@@ -440,6 +561,7 @@ const DEFAULT_FEES = { groups:[
 ]};
 
 const DEFAULT_HOMEWORK = { weekOf:null, items:[] };
+const DEFAULT_SNAPSHOTS = { items:[] };
 
 const FEE_COLS = [
   {key:'academy', label:'학원명'},
@@ -456,10 +578,11 @@ const DEFAULT_YEAR = String(new Date().getFullYear()).slice(2);
 const DEFAULT_TERM = "1학기";
 const TERM_OPTIONS = ["1학기","2학기","여름방학","겨울방학"];
 
-let DATA = null, CONTACTS = null, FEES = null, CATEGORIES = null, HOMEWORK = null;
+let DATA = null, CONTACTS = null, FEES = null, CATEGORIES = null, HOMEWORK = null, SNAPSHOTS = null;
 let TITLE = DEFAULT_TITLE, SUBTITLE = DEFAULT_SUBTITLE, YEAR = DEFAULT_YEAR, TERM = DEFAULT_TERM;
 let activeDay = "월";
 let eyebrowEditing = false;
+let editMode = false;
 const days = Object.keys(DEFAULT_DATA);
 const KIDS = ['이현','규현'];
 const EXTRA_TABS = [ {id:'contacts', label:'연락처'}, {id:'fees', label:'학원비'} ];
@@ -480,6 +603,7 @@ function makeDblClickEditable(el, placeholder, onCommit){
   el.classList.add('ed-field');
   if(placeholder) el.setAttribute('data-placeholder', placeholder);
   el.addEventListener('dblclick', (e)=>{
+    if(!editMode) return;
     e.stopPropagation();
     el.contentEditable = 'true';
     el.focus();
@@ -492,30 +616,18 @@ function makeDblClickEditable(el, placeholder, onCommit){
     else if(e.key==='Escape'){ el.blur(); }
   });
 }
-function attachLongPressDelete(el, message, onConfirm){
-  const THRESHOLD = 600;
-  const TOLERANCE = 10;
-  let timer = null;
-  let startX = 0, startY = 0;
-  const clear = ()=>{ if(timer){ clearTimeout(timer); timer = null; } };
-  el.addEventListener('pointerdown', (e)=>{
-    if(e.pointerType==='mouse' && e.button!==0) return;
+function makeDeleteButton(message, onConfirm){
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'del-x';
+  btn.textContent = '×';
+  btn.title = '삭제';
+  btn.addEventListener('pointerdown', (e)=> e.stopPropagation());
+  btn.addEventListener('click', (e)=>{
     e.stopPropagation();
-    startX = e.clientX; startY = e.clientY;
-    clear();
-    timer = setTimeout(()=>{
-      timer = null;
-      if(confirm(message)) onConfirm();
-    }, THRESHOLD);
+    if(confirm(message)) onConfirm();
   });
-  el.addEventListener('pointermove', (e)=>{
-    if(!timer) return;
-    if(Math.abs(e.clientX-startX)>TOLERANCE || Math.abs(e.clientY-startY)>TOLERANCE) clear();
-  });
-  el.addEventListener('pointerup', clear);
-  el.addEventListener('pointerleave', clear);
-  el.addEventListener('pointercancel', clear);
-  el.addEventListener('contextmenu', (e)=> e.preventDefault());
+  return btn;
 }
 function isEditableFocus(){
   const a = document.activeElement;
@@ -543,6 +655,253 @@ function textColorFor(hex){
   try{ return relLuminance(hex) > 0.55 ? '#33302A' : '#FFFFFF'; }catch(e){ return '#33302A'; }
 }
 
+/* ===== HSL 원형 색상표 ===== */
+function hslToRgb(h, s, l){
+  h = ((h % 360) + 360) % 360; s = clamp(s,0,100)/100; l = clamp(l,0,100)/100;
+  const c = (1 - Math.abs(2*l - 1)) * s;
+  const x = c * (1 - Math.abs((h/60) % 2 - 1));
+  const m = l - c/2;
+  let r=0,g=0,b=0;
+  if(h<60){ r=c; g=x; b=0; }
+  else if(h<120){ r=x; g=c; b=0; }
+  else if(h<180){ r=0; g=c; b=x; }
+  else if(h<240){ r=0; g=x; b=c; }
+  else if(h<300){ r=x; g=0; b=c; }
+  else { r=c; g=0; b=x; }
+  return [Math.round((r+m)*255), Math.round((g+m)*255), Math.round((b+m)*255)];
+}
+function rgbToHex(r,g,b){
+  return '#' + [r,g,b].map(v=> clamp(v,0,255).toString(16).padStart(2,'0')).join('').toUpperCase();
+}
+function hexToHsl(hex){
+  const {r,g,b} = hexToRgb(hex);
+  const rn=r/255, gn=g/255, bn=b/255;
+  const max=Math.max(rn,gn,bn), min=Math.min(rn,gn,bn);
+  let h=0; const l=(max+min)/2; let s=0;
+  const d=max-min;
+  if(d!==0){
+    s = l>0.5 ? d/(2-max-min) : d/(max+min);
+    if(max===rn) h = (gn-bn)/d + (gn<bn?6:0);
+    else if(max===gn) h = (bn-rn)/d + 2;
+    else h = (rn-gn)/d + 4;
+    h *= 60;
+  }
+  return { h, s:s*100, l:l*100 };
+}
+
+function buildColorWheel(initialHex, onChange){
+  const SIZE = 176;
+  const wrap = document.createElement('div');
+  wrap.className = 'color-wheel-wrap';
+
+  const wheelBox = document.createElement('div');
+  wheelBox.className = 'color-wheel-box';
+  wheelBox.style.width = SIZE+'px';
+  wheelBox.style.height = SIZE+'px';
+  const canvas = document.createElement('canvas');
+  canvas.width = SIZE; canvas.height = SIZE;
+  canvas.className = 'color-wheel-canvas';
+  const cursor = document.createElement('div');
+  cursor.className = 'color-wheel-cursor';
+  wheelBox.appendChild(canvas);
+  wheelBox.appendChild(cursor);
+
+  const lightSlider = document.createElement('input');
+  lightSlider.type = 'range'; lightSlider.min = '10'; lightSlider.max = '95';
+  lightSlider.className = 'color-wheel-light';
+
+  let hsl = hexToHsl(initialHex);
+  if(hsl.s < 2) hsl.s = 40;
+  lightSlider.value = String(Math.round(hsl.l));
+
+  const ctx = canvas.getContext('2d');
+  function drawWheel(){
+    const img = ctx.createImageData(SIZE, SIZE);
+    const cx = SIZE/2, cy = SIZE/2, R = SIZE/2;
+    for(let y=0; y<SIZE; y++){
+      for(let x=0; x<SIZE; x++){
+        const dx = x-cx, dy = y-cy;
+        const dist = Math.sqrt(dx*dx+dy*dy);
+        const i = (y*SIZE+x)*4;
+        if(dist>R){ img.data[i+3]=0; continue; }
+        let angle = Math.atan2(dy,dx) * 180/Math.PI;
+        angle = (angle+360)%360;
+        const sat = Math.min(100, dist/R*100);
+        const [r,g,b] = hslToRgb(angle, sat, hsl.l);
+        img.data[i]=r; img.data[i+1]=g; img.data[i+2]=b; img.data[i+3]=255;
+      }
+    }
+    ctx.putImageData(img, 0, 0);
+  }
+  function updateCursor(){
+    const cx = SIZE/2, cy = SIZE/2, R = SIZE/2;
+    const rad = hsl.h * Math.PI/180;
+    const dist = (hsl.s/100)*R;
+    cursor.style.left = (cx + Math.cos(rad)*dist) + 'px';
+    cursor.style.top = (cy + Math.sin(rad)*dist) + 'px';
+    const [r,g,b] = hslToRgb(hsl.h, hsl.s, hsl.l);
+    cursor.style.background = rgbToHex(r,g,b);
+  }
+  function emit(){
+    const [r,g,b] = hslToRgb(hsl.h, hsl.s, hsl.l);
+    onChange(rgbToHex(r,g,b));
+  }
+  function pickAt(clientX, clientY){
+    const rect = canvas.getBoundingClientRect();
+    const x = clientX - rect.left, y = clientY - rect.top;
+    const cx = SIZE/2, cy = SIZE/2, R = SIZE/2;
+    const dx = x-cx, dy = y-cy;
+    let dist = Math.sqrt(dx*dx+dy*dy);
+    let angle = Math.atan2(dy,dx) * 180/Math.PI; angle = (angle+360)%360;
+    if(dist>R) dist = R;
+    hsl.h = angle; hsl.s = (dist/R)*100;
+    updateCursor();
+    emit();
+  }
+  let dragging = false;
+  canvas.addEventListener('pointerdown', (e)=>{
+    e.stopPropagation();
+    dragging = true;
+    canvas.setPointerCapture(e.pointerId);
+    pickAt(e.clientX, e.clientY);
+  });
+  canvas.addEventListener('pointermove', (e)=>{ if(dragging) pickAt(e.clientX, e.clientY); });
+  canvas.addEventListener('pointerup', ()=>{ dragging = false; });
+  lightSlider.addEventListener('pointerdown', (e)=> e.stopPropagation());
+  lightSlider.addEventListener('input', ()=>{
+    hsl.l = Number(lightSlider.value);
+    drawWheel();
+    updateCursor();
+    emit();
+  });
+
+  drawWheel();
+  updateCursor();
+
+  wrap.appendChild(wheelBox);
+  wrap.appendChild(lightSlider);
+  return wrap;
+}
+
+let currentColorPopup = null;
+function closeColorPopup(){
+  if(currentColorPopup){ currentColorPopup.remove(); currentColorPopup = null; }
+  document.removeEventListener('click', closeColorPopupOnOutsideClick, true);
+}
+function closeColorPopupOnOutsideClick(e){
+  if(currentColorPopup && !currentColorPopup.contains(e.target)) closeColorPopup();
+}
+function openColorPicker(anchorEl, currentColor, onPick){
+  closeColorPopup();
+  closeCategoryPicker();
+  const pop = document.createElement('div');
+  pop.className = 'color-popup';
+
+  const tabs = document.createElement('div');
+  tabs.className = 'color-popup-tabs';
+  const presetTab = document.createElement('button');
+  presetTab.type = 'button'; presetTab.className = 'color-tab'; presetTab.textContent = '프리셋';
+  const customTab = document.createElement('button');
+  customTab.type = 'button'; customTab.className = 'color-tab'; customTab.textContent = '사용자화';
+  tabs.appendChild(presetTab); tabs.appendChild(customTab);
+
+  const body = document.createElement('div');
+  body.className = 'color-popup-body';
+
+  function showPreset(){
+    presetTab.classList.add('active'); customTab.classList.remove('active');
+    body.innerHTML = '';
+    const grid = document.createElement('div');
+    grid.className = 'color-grid';
+    PASTEL_PALETTE.forEach(hex=>{
+      const sw = document.createElement('button');
+      sw.type = 'button';
+      const isSel = hex.toUpperCase() === (currentColor||'').toUpperCase();
+      sw.className = 'color-swatch' + (isSel ? ' selected' : '');
+      sw.style.background = hex;
+      if(isSel){
+        const check = document.createElement('span');
+        check.className = 'color-swatch-check';
+        check.textContent = '✓';
+        sw.appendChild(check);
+      }
+      /* 짧게 클릭하면 바로 선택, 길게 누르면 원형 색상표로 넘어가 그 색을 세밀 조정 */
+      let pressTimer = null, pStartX = 0, pStartY = 0, longPressFired = false;
+      const THRESHOLD = 450, TOLERANCE = 8;
+      const cancelPress = ()=>{ if(pressTimer){ clearTimeout(pressTimer); pressTimer = null; } };
+      sw.addEventListener('pointerdown', (e)=>{
+        pStartX = e.clientX; pStartY = e.clientY; longPressFired = false;
+        cancelPress();
+        pressTimer = setTimeout(()=>{
+          pressTimer = null;
+          longPressFired = true;
+          showCustom(hex);
+        }, THRESHOLD);
+      });
+      sw.addEventListener('pointermove', (e)=>{
+        if(!pressTimer) return;
+        if(Math.abs(e.clientX-pStartX)>TOLERANCE || Math.abs(e.clientY-pStartY)>TOLERANCE) cancelPress();
+      });
+      sw.addEventListener('pointerup', cancelPress);
+      sw.addEventListener('pointerleave', cancelPress);
+      sw.addEventListener('pointercancel', cancelPress);
+      sw.addEventListener('contextmenu', (e)=> e.preventDefault());
+      sw.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        if(longPressFired){ longPressFired = false; return; }
+        onPick(hex); closeColorPopup();
+      });
+      grid.appendChild(sw);
+    });
+    body.appendChild(grid);
+  }
+  function showCustom(startHex){
+    presetTab.classList.remove('active'); customTab.classList.add('active');
+    const initHex = startHex || currentColor;
+    body.innerHTML = '';
+    let pending = initHex;
+    const previewRow = document.createElement('div');
+    previewRow.className = 'color-preview-row';
+    const preview = document.createElement('span');
+    preview.className = 'color-preview';
+    preview.style.background = initHex;
+    const hexOut = document.createElement('span');
+    hexOut.className = 'color-hex';
+    hexOut.textContent = initHex;
+    previewRow.appendChild(preview);
+    previewRow.appendChild(hexOut);
+
+    const wheel = buildColorWheel(initHex, (hex)=>{
+      pending = hex;
+      preview.style.background = hex;
+      hexOut.textContent = hex;
+    });
+    body.appendChild(wheel);
+    body.appendChild(previewRow);
+
+    const applyBtn = document.createElement('button');
+    applyBtn.type = 'button';
+    applyBtn.className = 'color-apply-btn';
+    applyBtn.textContent = '적용';
+    applyBtn.addEventListener('click', (e)=>{ e.stopPropagation(); onPick(pending); closeColorPopup(); });
+    body.appendChild(applyBtn);
+  }
+  presetTab.addEventListener('click', (e)=>{ e.stopPropagation(); showPreset(); });
+  customTab.addEventListener('click', (e)=>{ e.stopPropagation(); showCustom(); });
+
+  pop.appendChild(tabs);
+  pop.appendChild(body);
+  document.body.appendChild(pop);
+  showPreset();
+
+  const r = anchorEl.getBoundingClientRect();
+  const pw = pop.offsetWidth, ph = pop.offsetHeight;
+  pop.style.top = Math.max(8, Math.min(r.bottom+4, window.innerHeight-ph-8)) + 'px';
+  pop.style.left = Math.max(8, Math.min(r.left, window.innerWidth-pw-8)) + 'px';
+  currentColorPopup = pop;
+  setTimeout(()=> document.addEventListener('click', closeColorPopupOnOutsideClick, true), 0);
+}
+
 let currentPicker = null;
 function closeCategoryPicker(){
   if(currentPicker){ currentPicker.remove(); currentPicker = null; }
@@ -553,6 +912,7 @@ function closeCategoryPickerOnOutsideClick(e){
 }
 function openCategoryPicker(anchorEl, currentId, onPick){
   closeCategoryPicker();
+  closeColorPopup();
   const menu = document.createElement('div');
   menu.className = 'cat-picker';
   CATEGORIES.forEach(cat=>{
@@ -587,6 +947,7 @@ async function loadLocalState(){
       FEES = s.fees || deepClone(DEFAULT_FEES);
       CATEGORIES = s.categories || deepClone(DEFAULT_CATEGORIES);
       HOMEWORK = s.homework || deepClone(DEFAULT_HOMEWORK);
+      SNAPSHOTS = s.snapshots || deepClone(DEFAULT_SNAPSHOTS);
       if(s.title){
         TITLE = s.title.title || DEFAULT_TITLE;
         SUBTITLE = s.title.subtitle || DEFAULT_SUBTITLE;
@@ -601,6 +962,7 @@ async function loadLocalState(){
   FEES = deepClone(DEFAULT_FEES);
   CATEGORIES = deepClone(DEFAULT_CATEGORIES);
   HOMEWORK = deepClone(DEFAULT_HOMEWORK);
+  SNAPSHOTS = deepClone(DEFAULT_SNAPSHOTS);
 }
 let localSaveTimer = null;
 function scheduleLocalSave(){
@@ -610,7 +972,7 @@ function scheduleLocalSave(){
 async function persistLocal(){
   try{
     const snapshot = {
-      data:DATA, contacts:CONTACTS, fees:FEES, categories:CATEGORIES, homework:HOMEWORK,
+      data:DATA, contacts:CONTACTS, fees:FEES, categories:CATEGORIES, homework:HOMEWORK, snapshots:SNAPSHOTS,
       title:{title:TITLE, subtitle:SUBTITLE, year:YEAR, term:TERM}
     };
     await window.storage.set(LOCAL_KEY, JSON.stringify(snapshot), false);
@@ -660,7 +1022,7 @@ function onFbValue(snap){
   fbStatus = 'synced';
   if(!remote){
     fbRef.set({
-      data:DATA, contacts:CONTACTS, fees:FEES, categories:CATEGORIES, homework:HOMEWORK,
+      data:DATA, contacts:CONTACTS, fees:FEES, categories:CATEGORIES, homework:HOMEWORK, snapshots:SNAPSHOTS,
       title:{title:TITLE, subtitle:SUBTITLE, year:YEAR, term:TERM}
     }).catch(e=>console.error(e));
     updateSyncPill();
@@ -672,6 +1034,7 @@ function onFbValue(snap){
   if(!fbWriteTimers.fees && remote.fees && JSON.stringify(remote.fees)!==JSON.stringify(FEES)){ FEES=remote.fees; changed=true; }
   if(!fbWriteTimers.categories && remote.categories && JSON.stringify(remote.categories)!==JSON.stringify(CATEGORIES)){ CATEGORIES=remote.categories; changed=true; }
   if(!fbWriteTimers.homework && remote.homework && JSON.stringify(remote.homework)!==JSON.stringify(HOMEWORK)){ HOMEWORK=remote.homework; changed=true; }
+  if(!fbWriteTimers.snapshots && remote.snapshots && JSON.stringify(remote.snapshots)!==JSON.stringify(SNAPSHOTS)){ SNAPSHOTS=remote.snapshots; changed=true; }
   if(!fbWriteTimers.title && remote.title){
     const t = remote.title;
     if(t.title!==TITLE || t.subtitle!==SUBTITLE || t.year!==YEAR || t.term!==TERM){
@@ -684,6 +1047,7 @@ function onFbValue(snap){
   }
   if(changed){
     ensureHomeworkWeek();
+    normalizeSnapshots();
     scheduleLocalSave();
     if(isEditableFocus()){ pendingRerender = true; }
     else { rerenderNow(); }
@@ -696,7 +1060,7 @@ function fbQueueSync(key){
   fbWriteTimers[key] = setTimeout(()=>{
     const getters = {
       data: ()=>DATA, contacts: ()=>CONTACTS, fees: ()=>FEES,
-      categories: ()=>CATEGORIES, homework: ()=>HOMEWORK,
+      categories: ()=>CATEGORIES, homework: ()=>HOMEWORK, snapshots: ()=>SNAPSHOTS,
       title: ()=>({title:TITLE, subtitle:SUBTITLE, year:YEAR, term:TERM})
     };
     if(!getters[key]){ delete fbWriteTimers[key]; return; }
@@ -736,6 +1100,7 @@ function initStaticEditables(){
 }
 
 function onEyebrowDblClick(e){
+  if(!editMode) return;
   e.stopPropagation();
   eyebrowEditing = true;
   buildEyebrow();
@@ -799,35 +1164,49 @@ function buildLegend(){
     const chip = document.createElement('span');
     chip.className = 'cat-chip';
 
-    const colorInput = document.createElement('input');
-    colorInput.type = 'color';
-    colorInput.className = 'cat-color';
-    colorInput.value = cat.color;
-    colorInput.addEventListener('input', ()=>{ cat.color = colorInput.value; markDirty('categories'); });
-    colorInput.addEventListener('change', renderPanels);
+    const colorBtn = document.createElement('button');
+    colorBtn.type = 'button';
+    colorBtn.className = 'cat-color';
+    colorBtn.style.background = cat.color;
+    colorBtn.disabled = !editMode;
+    colorBtn.addEventListener('pointerdown', (e)=> e.stopPropagation());
+    colorBtn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      if(!editMode) return;
+      openColorPicker(colorBtn, cat.color, (hex)=>{
+        cat.color = hex;
+        markDirty('categories');
+        colorBtn.style.background = hex;
+        renderPanels();
+      });
+    });
 
     const label = document.createElement('span');
+    label.className = 'cat-label';
     label.textContent = cat.label;
     makeDblClickEditable(label, '카테고리 이름', (val)=>{ cat.label = val; markDirty('categories'); });
 
-    attachLongPressDelete(chip, `"${cat.label}" 카테고리를 삭제할까요? 이 카테고리를 쓰던 일정은 "기타"로 바뀝니다.`, ()=> deleteCategory(cat, idx));
-
-    chip.appendChild(colorInput);
+    chip.appendChild(colorBtn);
     chip.appendChild(label);
+    if(editMode){
+      chip.appendChild(makeDeleteButton(`"${cat.label}" 카테고리를 삭제할까요? 이 카테고리를 쓰던 일정은 "기타"로 바뀝니다.`, ()=> deleteCategory(cat, idx)));
+    }
     legendEl.appendChild(chip);
   });
 
-  const addBtn = document.createElement('button');
-  addBtn.className = 'cat-add';
-  addBtn.textContent = '+ 카테고리';
-  addBtn.addEventListener('click', ()=>{
-    const id = 'cat' + Date.now().toString(36) + Math.random().toString(36).slice(2,5);
-    const color = PASTEL_PALETTE[CATEGORIES.length % PASTEL_PALETTE.length];
-    CATEGORIES.push({id, label:'새 카테고리', color});
-    markDirty('categories');
-    buildLegend();
-  });
-  legendEl.appendChild(addBtn);
+  if(editMode){
+    const addBtn = document.createElement('button');
+    addBtn.className = 'cat-add';
+    addBtn.textContent = '+ 카테고리';
+    addBtn.addEventListener('click', ()=>{
+      const id = 'cat' + Date.now().toString(36) + Math.random().toString(36).slice(2,5);
+      const color = PASTEL_PALETTE[CATEGORIES.length % PASTEL_PALETTE.length];
+      CATEGORIES.push({id, label:'새 카테고리', color});
+      markDirty('categories');
+      buildLegend();
+    });
+    legendEl.appendChild(addBtn);
+  }
 }
 function deleteCategory(cat, idx){
   if(CATEGORIES.length<=1){ alert('카테고리가 최소 1개는 있어야 해요.'); return; }
@@ -1010,20 +1389,22 @@ function buildDayGrid(day){
       cell.className = 'tg-cell-empty';
       cell.style.gridColumn = String(colNum);
       cell.style.gridRow = `${blockStart+2} / ${blockEnd+2}`;
-      cell.title = '더블클릭해서 일정 추가';
-      cell.addEventListener('dblclick', ()=>{
-        let boundary = N_FINE_ROWS;
-        for(let bb=b+1; bb<FINE_BLOCK_START.length; bb++){ if(isBlockCovered(bb)){ boundary=FINE_BLOCK_START[bb]; break; } }
-        const eRowNew = Math.min(blockEnd, boundary);
-        info.events.push({cat:'other', time: joinTime(fineLabel(blockStart), fineLabel(eRowNew)), name:'', meta:''});
-        markDirty('data');
-        const newIdx = info.events.length - 1;
-        renderPanels();
-        requestAnimationFrame(()=>{
-          const el = document.querySelector(`.tg-event[data-day="${day}"][data-kid="${kid}"][data-idx="${newIdx}"] .name`);
-          if(el){ el.contentEditable='true'; el.focus(); placeCaretAtEnd(el); }
+      if(editMode){
+        cell.title = '더블클릭해서 일정 추가';
+        cell.addEventListener('dblclick', ()=>{
+          let boundary = N_FINE_ROWS;
+          for(let bb=b+1; bb<FINE_BLOCK_START.length; bb++){ if(isBlockCovered(bb)){ boundary=FINE_BLOCK_START[bb]; break; } }
+          const eRowNew = Math.min(blockEnd, boundary);
+          info.events.push({cat:'other', time: joinTime(fineLabel(blockStart), fineLabel(eRowNew)), name:'', meta:''});
+          markDirty('data');
+          const newIdx = info.events.length - 1;
+          renderPanels();
+          requestAnimationFrame(()=>{
+            const el = document.querySelector(`.tg-event[data-day="${day}"][data-kid="${kid}"][data-idx="${newIdx}"] .name`);
+            if(el){ el.contentEditable='true'; el.focus(); placeCaretAtEnd(el); }
+          });
         });
-      });
+      }
       wrap.appendChild(cell);
     }
   });
@@ -1050,44 +1431,97 @@ function buildGridEventEl(day, kid, ev, idx, sRow, eRow){
   div.dataset.kid = kid;
   div.dataset.idx = idx;
 
-  const grip = document.createElement('div');
-  grip.className = 'tg-grip';
-  grip.title = '드래그해서 이동';
-  grip.addEventListener('pointerdown', (e)=> startDrag(e, 'move', day, kid, idx, sRow, eRow));
-  div.appendChild(grip);
+  if(editMode){
+    div.appendChild(makeDeleteButton(`"${ev.name || '이 일정'}"을 삭제할까요?`, ()=>{
+      DATA[day][kid].events.splice(idx,1);
+      markDirty('data');
+      renderPanels();
+    }));
 
-  const resizeTop = document.createElement('div');
-  resizeTop.className = 'tg-resize-top';
-  resizeTop.title = '드래그해서 시작 시간 조절';
-  resizeTop.addEventListener('pointerdown', (e)=> startDrag(e, 'resize-top', day, kid, idx, sRow, eRow));
-  div.appendChild(resizeTop);
+    const handleTop = document.createElement('div');
+    handleTop.className = 'tg-handle tg-handle-top';
+    handleTop.title = '드래그해서 시작 시간 조절';
+    handleTop.addEventListener('pointerdown', (e)=>{
+      e.preventDefault(); e.stopPropagation();
+      startDrag(e.clientY, 'resize-top', day, kid, idx, sRow, eRow);
+    });
+    div.appendChild(handleTop);
 
-  attachLongPressDelete(div, `"${ev.name || '이 일정'}"을 삭제할까요?`, ()=>{
-    DATA[day][kid].events.splice(idx,1);
-    markDirty('data');
-    renderPanels();
-  });
+    const handleBottom = document.createElement('div');
+    handleBottom.className = 'tg-handle tg-handle-bottom';
+    handleBottom.title = '드래그해서 종료 시간 조절';
+    handleBottom.addEventListener('pointerdown', (e)=>{
+      e.preventDefault(); e.stopPropagation();
+      startDrag(e.clientY, 'resize', day, kid, idx, sRow, eRow);
+    });
+    div.appendChild(handleBottom);
+
+    /* 몸통을 길게 누르면(롱프레스) 전체 이동 드래그 시작 — 핸들/삭제버튼/편집 가능한 텍스트는 제외 */
+    let pressTimer = null, pStartX = 0, pStartY = 0;
+    const THRESHOLD = 380, TOLERANCE = 8;
+    const cancelPress = ()=>{ if(pressTimer){ clearTimeout(pressTimer); pressTimer = null; } };
+    div.addEventListener('pointerdown', (e)=>{
+      if(e.target.closest('.tg-handle, .del-x, .ed-field, .cat-dot')) return;
+      pStartX = e.clientX; pStartY = e.clientY;
+      cancelPress();
+      pressTimer = setTimeout(()=>{
+        pressTimer = null;
+        div.classList.add('dragging');
+        startDrag(pStartY, 'move', day, kid, idx, sRow, eRow);
+      }, THRESHOLD);
+    });
+    div.addEventListener('pointermove', (e)=>{
+      if(!pressTimer) return;
+      if(Math.abs(e.clientX-pStartX)>TOLERANCE || Math.abs(e.clientY-pStartY)>TOLERANCE) cancelPress();
+    });
+    div.addEventListener('pointerup', cancelPress);
+    div.addEventListener('pointerleave', cancelPress);
+    div.addEventListener('pointercancel', cancelPress);
+  }
 
   const head = document.createElement('div');
   head.className = 'tg-event-head';
-  const catDot = document.createElement('span');
-  catDot.className = 'cat-dot';
-  catDot.title = '카테고리 선택';
-  catDot.style.background = cat.color;
-  catDot.addEventListener('pointerdown', (e)=> e.stopPropagation());
-  catDot.addEventListener('click', (e)=>{
-    e.stopPropagation();
-    openCategoryPicker(catDot, ev.cat, (newId)=>{
-      ev.cat = newId;
-      ev.name = getCategory(newId).label;
-      markDirty('data');
-      renderPanels();
+  if(editMode){
+    const catDot = document.createElement('span');
+    catDot.className = 'cat-dot';
+    catDot.title = '카테고리 선택';
+    catDot.style.background = cat.color;
+    catDot.addEventListener('pointerdown', (e)=> e.stopPropagation());
+    catDot.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      openCategoryPicker(catDot, ev.cat, (newId)=>{
+        ev.cat = newId;
+        ev.name = getCategory(newId).label;
+        markDirty('data');
+        renderPanels();
+      });
     });
-  });
+    head.appendChild(catDot);
+  }
   const timeLabel = document.createElement('span');
-  timeLabel.className = 'time';
-  timeLabel.textContent = ev.time || `${fineLabel(sRow)} ~ ${fineLabel(Math.min(eRow, N_FINE_ROWS))}`;
-  head.appendChild(catDot);
+  timeLabel.className = 'time ed-field';
+  timeLabel.setAttribute('data-placeholder', '시간');
+  const fallbackTimeLabel = `${fineLabel(sRow)} ~ ${fineLabel(Math.min(eRow, N_FINE_ROWS))}`;
+  timeLabel.textContent = ev.time || fallbackTimeLabel;
+  timeLabel.addEventListener('dblclick', (e)=>{
+    if(!editMode) return;
+    e.stopPropagation();
+    timeLabel.contentEditable = 'true';
+    timeLabel.focus();
+    placeCaretAtEnd(timeLabel);
+  });
+  timeLabel.addEventListener('blur', ()=>{
+    timeLabel.contentEditable = 'false';
+    const val = timeLabel.textContent.trim();
+    if(val === ev.time) return;
+    ev.time = val;
+    markDirty('data');
+    renderPanels();
+  });
+  timeLabel.addEventListener('keydown', (e)=>{
+    if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); timeLabel.blur(); }
+    else if(e.key==='Escape'){ e.preventDefault(); timeLabel.textContent = ev.time || fallbackTimeLabel; timeLabel.blur(); }
+  });
   head.appendChild(timeLabel);
   div.appendChild(head);
 
@@ -1103,18 +1537,10 @@ function buildGridEventEl(day, kid, ev, idx, sRow, eRow){
   makeDblClickEditable(meta, '메모', (val)=>{ ev.meta = val; markDirty('data'); });
   div.appendChild(meta);
 
-  const resize = document.createElement('div');
-  resize.className = 'tg-resize';
-  resize.title = '드래그해서 길이 조절';
-  resize.addEventListener('pointerdown', (e)=> startDrag(e, 'resize', day, kid, idx, sRow, eRow));
-  div.appendChild(resize);
-
   return div;
 }
 
-function startDrag(e, mode, day, kid, idx, sRow, eRow){
-  e.preventDefault();
-  e.stopPropagation();
+function startDrag(startY, mode, day, kid, idx, sRow, eRow){
   const info = DATA[day][kid];
   const duration = eRow - sRow;
 
@@ -1129,11 +1555,11 @@ function startDrag(e, mode, day, kid, idx, sRow, eRow){
     if(s2 >= eRow && s2 < nextStart) nextStart = s2;
   });
 
-  const startY = e.clientY;
   const startPx = fineRowToPx(sRow);
   const endPx = fineRowToPx(eRow);
   let previewS = sRow, previewE = eRow;
   const el = document.querySelector(`.tg-event[data-day="${day}"][data-kid="${kid}"][data-idx="${idx}"]`);
+  if(el) el.style.touchAction = 'none';
 
   const onMove = (ev2)=>{
     const deltaPx = ev2.clientY - startY;
@@ -1177,6 +1603,7 @@ function buildContactsPanel(){
   ['학원/이름','구분','전화번호'].forEach(label=>{
     const th = document.createElement('th'); th.textContent = label; trh.appendChild(th);
   });
+  if(editMode) trh.appendChild(document.createElement('th'));
   thead.appendChild(trh);
   table.appendChild(thead);
 
@@ -1189,24 +1616,30 @@ function buildContactsPanel(){
       makeDblClickEditable(td, ph, (val)=>{ row[key]=val; markDirty('contacts'); });
       tr.appendChild(td);
     });
-    attachLongPressDelete(tr, `"${row.academy || '이 연락처'}" 항목을 삭제할까요?`, ()=>{
-      CONTACTS.rows.splice(ri,1); markDirty('contacts'); renderPanels();
-    });
+    if(editMode){
+      const delTd = document.createElement('td');
+      delTd.appendChild(makeDeleteButton(`"${row.academy || '이 연락처'}" 항목을 삭제할까요?`, ()=>{
+        CONTACTS.rows.splice(ri,1); markDirty('contacts'); renderPanels();
+      }));
+      tr.appendChild(delTd);
+    }
     tbody.appendChild(tr);
   });
   table.appendChild(tbody);
   scrollEl.appendChild(table);
   wrap.appendChild(scrollEl);
 
-  const addBtn = document.createElement('button');
-  addBtn.className = 'add-row-btn';
-  addBtn.textContent = '+ 연락처 추가';
-  addBtn.addEventListener('click', ()=>{
-    CONTACTS.rows.push({academy:'', role:'', phone:''});
-    markDirty('contacts');
-    renderPanels();
-  });
-  wrap.appendChild(addBtn);
+  if(editMode){
+    const addBtn = document.createElement('button');
+    addBtn.className = 'add-row-btn';
+    addBtn.textContent = '+ 연락처 추가';
+    addBtn.addEventListener('click', ()=>{
+      CONTACTS.rows.push({academy:'', role:'', phone:''});
+      markDirty('contacts');
+      renderPanels();
+    });
+    wrap.appendChild(addBtn);
+  }
 
   return wrap;
 }
@@ -1218,15 +1651,17 @@ function buildFeesPanel(){
   const wrap = document.createElement('div');
   wrap.className = 'info-panel';
   FEES.groups.forEach((group, gi)=> wrap.appendChild(buildFeeGroupTable(group, gi)));
-  const addGroupBtn = document.createElement('button');
-  addGroupBtn.className = 'add-item-btn';
-  addGroupBtn.textContent = '+ 표 추가';
-  addGroupBtn.addEventListener('click', ()=>{
-    FEES.groups.push({rows:[]});
-    markDirty('fees');
-    renderPanels();
-  });
-  wrap.appendChild(addGroupBtn);
+  if(editMode){
+    const addGroupBtn = document.createElement('button');
+    addGroupBtn.className = 'add-item-btn';
+    addGroupBtn.textContent = '+ 표 추가';
+    addGroupBtn.addEventListener('click', ()=>{
+      FEES.groups.push({rows:[]});
+      markDirty('fees');
+      renderPanels();
+    });
+    wrap.appendChild(addGroupBtn);
+  }
   return wrap;
 }
 
@@ -1242,10 +1677,13 @@ function buildFeeGroupTable(group, gi){
   const thead = document.createElement('thead');
   const trh = document.createElement('tr');
   FEE_COLS.forEach(c=>{ const th=document.createElement('th'); th.textContent=c.label; trh.appendChild(th); });
-  trh.title = '길게 눌러서 표 전체 삭제';
-  attachLongPressDelete(trh, '이 학원비 표 전체를 삭제할까요?', ()=>{
-    FEES.groups.splice(gi,1); markDirty('fees'); renderPanels();
-  });
+  if(editMode){
+    const delTh = document.createElement('th');
+    delTh.appendChild(makeDeleteButton('이 학원비 표 전체를 삭제할까요?', ()=>{
+      FEES.groups.splice(gi,1); markDirty('fees'); renderPanels();
+    }));
+    trh.appendChild(delTh);
+  }
   thead.appendChild(trh);
   table.appendChild(thead);
 
@@ -1263,9 +1701,13 @@ function buildFeeGroupTable(group, gi){
       });
       tr.appendChild(td);
     });
-    attachLongPressDelete(tr, `"${row.academy || '이 항목'}" 항목을 삭제할까요?`, ()=>{
-      group.rows.splice(ri,1); markDirty('fees'); renderPanels();
-    });
+    if(editMode){
+      const delTd = document.createElement('td');
+      delTd.appendChild(makeDeleteButton(`"${row.academy || '이 항목'}" 항목을 삭제할까요?`, ()=>{
+        group.rows.splice(ri,1); markDirty('fees'); renderPanels();
+      }));
+      tr.appendChild(delTd);
+    }
     tbody.appendChild(tr);
   });
 
@@ -1278,7 +1720,7 @@ function buildFeeGroupTable(group, gi){
   totalTd.textContent = String(calcGroupTotal(group));
   totalTr.appendChild(totalTd);
   const restTd = document.createElement('td');
-  restTd.colSpan = 3;
+  restTd.colSpan = editMode ? 4 : 3;
   totalTr.appendChild(restTd);
   tbody.appendChild(totalTr);
 
@@ -1286,15 +1728,17 @@ function buildFeeGroupTable(group, gi){
   scrollEl.appendChild(table);
   wrapEl.appendChild(scrollEl);
 
-  const addBtn = document.createElement('button');
-  addBtn.className = 'add-row-btn';
-  addBtn.textContent = '+ 항목 추가';
-  addBtn.addEventListener('click', ()=>{
-    group.rows.push({academy:'', cycle:'', amount:'', note:'', method:'', payer:''});
-    markDirty('fees');
-    renderPanels();
-  });
-  wrapEl.appendChild(addBtn);
+  if(editMode){
+    const addBtn = document.createElement('button');
+    addBtn.className = 'add-row-btn';
+    addBtn.textContent = '+ 항목 추가';
+    addBtn.addEventListener('click', ()=>{
+      group.rows.push({academy:'', cycle:'', amount:'', note:'', method:'', payer:''});
+      markDirty('fees');
+      renderPanels();
+    });
+    wrapEl.appendChild(addBtn);
+  }
 
   return wrapEl;
 }
@@ -1307,6 +1751,10 @@ function mondayOf(date){
   dt.setHours(0,0,0,0);
   const y=dt.getFullYear(), m=String(dt.getMonth()+1).padStart(2,'0'), d=String(dt.getDate()).padStart(2,'0');
   return `${y}-${m}-${d}`;
+}
+function normalizeSnapshots(){
+  if(!SNAPSHOTS) SNAPSHOTS = deepClone(DEFAULT_SNAPSHOTS);
+  if(!Array.isArray(SNAPSHOTS.items)) SNAPSHOTS.items = [];
 }
 function normalizeHomework(){
   if(!HOMEWORK) HOMEWORK = deepClone(DEFAULT_HOMEWORK);
@@ -1357,26 +1805,28 @@ function renderHomework(){
     });
     col.appendChild(list);
 
-    const addBtn = document.createElement('button');
-    addBtn.className = 'hw-add';
-    addBtn.textContent = '+ 숙제 추가';
-    addBtn.addEventListener('click', ()=>{
-      try{
-        normalizeHomework();
-        HOMEWORK.items.push({day:activeDay, kid, text:'', mark:0});
-        const newIdx = HOMEWORK.items.length - 1;
-        markDirty('homework');
-        renderHomework();
-        requestAnimationFrame(()=>{
-          const el = document.querySelector(`.hw-text[data-idx="${newIdx}"]`);
-          if(el){ el.contentEditable='true'; el.focus(); placeCaretAtEnd(el); }
-        });
-      }catch(err){
-        console.error('hwAdd error', err);
-        showToast('숙제 추가 실패');
-      }
-    });
-    col.appendChild(addBtn);
+    if(editMode){
+      const addBtn = document.createElement('button');
+      addBtn.className = 'hw-add';
+      addBtn.textContent = '+ 숙제 추가';
+      addBtn.addEventListener('click', ()=>{
+        try{
+          normalizeHomework();
+          HOMEWORK.items.push({day:activeDay, kid, text:'', mark:0});
+          const newIdx = HOMEWORK.items.length - 1;
+          markDirty('homework');
+          renderHomework();
+          requestAnimationFrame(()=>{
+            const el = document.querySelector(`.hw-text[data-idx="${newIdx}"]`);
+            if(el){ el.contentEditable='true'; el.focus(); placeCaretAtEnd(el); }
+          });
+        }catch(err){
+          console.error('hwAdd error', err);
+          showToast('숙제 추가 실패');
+        }
+      });
+      col.appendChild(addBtn);
+    }
 
     kidsWrap.appendChild(col);
   });
@@ -1403,12 +1853,13 @@ function buildHomeworkItem(item, idx){
   text.textContent = item.text || '';
   makeDblClickEditable(text, '숙제 내용', (val)=>{ item.text = val; markDirty('homework'); });
 
-  attachLongPressDelete(row, `"${item.text || '이 숙제'}" 항목을 삭제할까요?`, ()=>{
-    HOMEWORK.items.splice(idx,1); markDirty('homework'); renderHomework();
-  });
-
   row.appendChild(check);
   row.appendChild(text);
+  if(editMode){
+    row.appendChild(makeDeleteButton(`"${item.text || '이 숙제'}" 항목을 삭제할까요?`, ()=>{
+      HOMEWORK.items.splice(idx,1); markDirty('homework'); renderHomework();
+    }));
+  }
   return row;
 }
 
@@ -1535,6 +1986,96 @@ async function exportExcel(){
       });
     });
 
+    const ws2 = wb.addWorksheet('연락처/학원비');
+    ws2.getColumn(1).width = 20;
+    ws2.getColumn(2).width = 16;
+    ws2.getColumn(3).width = 16;
+    ws2.getColumn(4).width = 10;
+    ws2.getColumn(5).width = 24;
+    ws2.getColumn(6).width = 12;
+    ws2.getColumn(7).width = 8;
+
+    let r2 = 1;
+    ws2.mergeCells(r2,1,r2,3);
+    {
+      const cell = ws2.getCell(r2,1);
+      cell.value = '연락처';
+      cell.font = { name:'Arial', bold:true, size:13 };
+      cell.fill = fill('D9D2BF');
+      cell.alignment = { vertical:'middle' };
+      [1,2,3].forEach(c=> ws2.getCell(r2,c).border = borderAll);
+    }
+    r2++;
+    ['이름','구분','전화번호'].forEach((label,i)=>{
+      const cell = ws2.getCell(r2, i+1);
+      cell.value = label;
+      cell.font = { name:'Arial', bold:true, size:10 };
+      cell.fill = fill('EDE7D6');
+      cell.border = borderAll;
+      cell.alignment = { horizontal:'center', vertical:'middle' };
+    });
+    r2++;
+    CONTACTS.rows.forEach(row=>{
+      [row.academy, row.role, row.phone].forEach((val,i)=>{
+        const cell = ws2.getCell(r2, i+1);
+        cell.value = val || '';
+        cell.font = { name:'Arial', size:10 };
+        cell.border = borderAll;
+        cell.alignment = { vertical:'middle' };
+      });
+      r2++;
+    });
+    r2 += 1;
+
+    ws2.mergeCells(r2,1,r2,FEE_COLS.length);
+    {
+      const cell = ws2.getCell(r2,1);
+      cell.value = '학원비';
+      cell.font = { name:'Arial', bold:true, size:13 };
+      cell.fill = fill('D9D2BF');
+      cell.alignment = { vertical:'middle' };
+      for(let c=1;c<=FEE_COLS.length;c++) ws2.getCell(r2,c).border = borderAll;
+    }
+    r2++;
+
+    FEES.groups.forEach(group=>{
+      FEE_COLS.forEach((c,i)=>{
+        const cell = ws2.getCell(r2, i+1);
+        cell.value = c.label;
+        cell.font = { name:'Arial', bold:true, size:10 };
+        cell.fill = fill('EDE7D6');
+        cell.border = borderAll;
+        cell.alignment = { horizontal:'center', vertical:'middle' };
+      });
+      r2++;
+      group.rows.forEach(row=>{
+        FEE_COLS.forEach((c,i)=>{
+          const cell = ws2.getCell(r2, i+1);
+          cell.value = row[c.key] || '';
+          cell.font = { name:'Arial', size:10 };
+          cell.border = borderAll;
+          cell.alignment = { vertical:'middle' };
+        });
+        r2++;
+      });
+      ws2.mergeCells(r2,1,r2,2);
+      const totalLabelCell = ws2.getCell(r2,1);
+      totalLabelCell.value = '합계';
+      totalLabelCell.font = { name:'Arial', bold:true, size:10 };
+      totalLabelCell.fill = fill('FAF6EB');
+      [1,2].forEach(c=> ws2.getCell(r2,c).border = borderAll);
+      const totalAmtCell = ws2.getCell(r2,3);
+      totalAmtCell.value = calcGroupTotal(group);
+      totalAmtCell.font = { name:'Arial', bold:true, size:10 };
+      totalAmtCell.fill = fill('FAF6EB');
+      totalAmtCell.border = borderAll;
+      for(let c=4;c<=FEE_COLS.length;c++){
+        ws2.getCell(r2,c).fill = fill('FAF6EB');
+        ws2.getCell(r2,c).border = borderAll;
+      }
+      r2 += 2;
+    });
+
     const buffer = await wb.xlsx.writeBuffer();
     const blob = new Blob([buffer], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     const url = URL.createObjectURL(blob);
@@ -1557,29 +2098,119 @@ async function exportExcel(){
 
 document.getElementById('exportBtn').addEventListener('click', exportExcel);
 
-document.getElementById('resetBtn').addEventListener('click', async ()=>{
-  if(!confirm('모든 수정 내용(일정·연락처·학원비·카테고리·숙제·제목 포함)을 지우고 원본으로 되돌릴까요?')) return;
-  DATA = deepClone(DEFAULT_DATA);
-  CONTACTS = deepClone(DEFAULT_CONTACTS);
-  FEES = deepClone(DEFAULT_FEES);
-  CATEGORIES = deepClone(DEFAULT_CATEGORIES);
-  HOMEWORK = deepClone(DEFAULT_HOMEWORK);
+document.getElementById('editModeBtn').addEventListener('click', ()=>{
+  editMode = !editMode;
+  const btn = document.getElementById('editModeBtn');
+  btn.textContent = editMode ? '✅ 수정 완료' : '✏️ 수정';
+  btn.classList.toggle('active', editMode);
+  document.body.classList.toggle('edit-mode', editMode);
+  rerenderNow();
+});
+
+function formatSnapDate(iso){
+  try{
+    const d = new Date(iso);
+    const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
+    const hh=String(d.getHours()).padStart(2,'0'), mm=String(d.getMinutes()).padStart(2,'0');
+    return `${y}-${m}-${day} ${hh}:${mm} 저장`;
+  }catch(e){ return ''; }
+}
+function applySnapshot(snap){
+  DATA = deepClone(snap.data);
+  CONTACTS = deepClone(snap.contacts);
+  FEES = deepClone(snap.fees);
+  CATEGORIES = deepClone(snap.categories);
+  HOMEWORK = deepClone(snap.homework);
   ensureHomeworkWeek();
-  TITLE = DEFAULT_TITLE; SUBTITLE = DEFAULT_SUBTITLE; YEAR = DEFAULT_YEAR; TERM = DEFAULT_TERM;
-  await persistLocal();
-  if(fbRef){
-    try{
-      await fbRef.set({
-        data:DATA, contacts:CONTACTS, fees:FEES, categories:CATEGORIES, homework:HOMEWORK,
-        title:{title:TITLE, subtitle:SUBTITLE, year:YEAR, term:TERM}
-      });
-    }catch(e){ console.error(e); }
+  if(snap.titleInfo){
+    TITLE = snap.titleInfo.title || DEFAULT_TITLE;
+    SUBTITLE = snap.titleInfo.subtitle || DEFAULT_SUBTITLE;
+    YEAR = snap.titleInfo.year || DEFAULT_YEAR;
+    TERM = TERM_OPTIONS.includes(snap.titleInfo.term) ? snap.titleInfo.term : DEFAULT_TERM;
   }
-  applyTitleToDOM();
-  buildLegend();
-  renderPanels();
-  renderHomework();
-  showToast('원본으로 초기화됨');
+  markDirty('data'); markDirty('contacts'); markDirty('fees');
+  markDirty('categories'); markDirty('homework'); markDirty('title');
+  rerenderNow();
+  showToast(`"${snap.title}" 일정을 불러왔어요`);
+}
+function renderSnapshotList(){
+  normalizeSnapshots();
+  const listEl = document.getElementById('snapshotList');
+  listEl.innerHTML = '';
+  if(SNAPSHOTS.items.length === 0){
+    const empty = document.createElement('div');
+    empty.className = 'snap-empty';
+    empty.textContent = '저장된 일정이 없어요. "📌 일정 fix" 버튼으로 지금 일정을 저장해보세요.';
+    listEl.appendChild(empty);
+    return;
+  }
+  SNAPSHOTS.items.slice().reverse().forEach(snap=>{
+    const realIdx = SNAPSHOTS.items.indexOf(snap);
+    const row = document.createElement('div');
+    row.className = 'snap-item';
+
+    const info = document.createElement('div');
+    info.className = 'snap-info';
+    const title = document.createElement('div');
+    title.className = 'snap-title';
+    title.textContent = snap.title;
+    const date = document.createElement('div');
+    date.className = 'snap-date';
+    date.textContent = formatSnapDate(snap.savedAt);
+    info.appendChild(title);
+    info.appendChild(date);
+    row.appendChild(info);
+
+    const loadBtn = document.createElement('button');
+    loadBtn.type = 'button';
+    loadBtn.className = 'snap-load-btn';
+    loadBtn.textContent = '불러오기';
+    loadBtn.addEventListener('click', ()=>{
+      if(!confirm(`"${snap.title}" 일정을 불러올까요? 현재 화면의 내용은 덮어써집니다.`)) return;
+      applySnapshot(snap);
+      document.getElementById('snapshotModal').style.display = 'none';
+    });
+    row.appendChild(loadBtn);
+    row.appendChild(makeDeleteButton(`"${snap.title}" 저장본을 삭제할까요?`, ()=>{
+      SNAPSHOTS.items.splice(realIdx,1);
+      markDirty('snapshots');
+      renderSnapshotList();
+    }));
+    listEl.appendChild(row);
+  });
+}
+
+document.getElementById('fixBtn').addEventListener('click', ()=>{
+  normalizeSnapshots();
+  const title = prompt('저장할 일정 이름을 입력하세요 (예: 2026년 1학기)', TITLE || '');
+  if(title === null) return;
+  const trimmed = title.trim();
+  if(!trimmed){ showToast('이름을 입력해주세요'); return; }
+  const snap = {
+    id: 'snap' + Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+    title: trimmed,
+    savedAt: new Date().toISOString(),
+    data: deepClone(DATA),
+    contacts: deepClone(CONTACTS),
+    fees: deepClone(FEES),
+    categories: deepClone(CATEGORIES),
+    homework: deepClone(HOMEWORK),
+    titleInfo: { title:TITLE, subtitle:SUBTITLE, year:YEAR, term:TERM }
+  };
+  SNAPSHOTS.items.push(snap);
+  markDirty('snapshots');
+  showToast(`"${trimmed}" 이름으로 저장했어요`);
+});
+
+document.getElementById('viewSnapshotsBtn').addEventListener('click', ()=>{
+  renderSnapshotList();
+  document.getElementById('snapshotModal').style.display = 'flex';
+});
+document.getElementById('snapshotCloseBtn').addEventListener('click', ()=>{
+  document.getElementById('snapshotModal').style.display = 'none';
+});
+document.getElementById('snapshotModal').addEventListener('click', (e)=>{
+  if(e.target.id === 'snapshotModal') document.getElementById('snapshotModal').style.display = 'none';
 });
 
 async function startApp(){
@@ -1587,6 +2218,7 @@ async function startApp(){
   appStarted = true;
   await loadLocalState();
   ensureHomeworkWeek();
+  normalizeSnapshots();
   applyTitleToDOM();
   initStaticEditables();
   buildTabs();
@@ -1623,7 +2255,15 @@ loginForm.addEventListener('submit', (e)=>{
     firebase.auth().signInWithEmailAndPassword(loginEmail.value.trim(), loginPassword.value)
       .catch((err)=>{
         console.error('login error', err);
-        loginError.textContent = `로그인 실패 (${err.code || 'unknown'}): ${err.message || err}`;
+        const friendly = {
+          'auth/invalid-credential': '이메일 또는 비밀번호가 올바르지 않아요.',
+          'auth/wrong-password': '이메일 또는 비밀번호가 올바르지 않아요.',
+          'auth/user-not-found': '이메일 또는 비밀번호가 올바르지 않아요.',
+          'auth/invalid-email': '이메일 형식이 올바르지 않아요.',
+          'auth/too-many-requests': '시도가 너무 많아요. 잠시 후 다시 시도해주세요.',
+          'auth/network-request-failed': '네트워크 연결을 확인해주세요.'
+        };
+        loginError.textContent = friendly[err.code] || `로그인 실패 (${err.code || 'unknown'}): ${err.message || err}`;
       })
       .finally(()=>{ loginSubmitBtn.disabled = false; });
   }catch(err){
