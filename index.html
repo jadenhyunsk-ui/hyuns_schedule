@@ -146,6 +146,26 @@
   }
   .snap-load-btn:hover{ border-color:var(--teal); }
 
+  /* ---- 자체 확인창 (브라우저 기본 confirm 대체) ---- */
+  .confirm-overlay{
+    position:fixed; inset:0; background:rgba(51,48,42,.45); z-index:95;
+    display:flex; align-items:center; justify-content:center; padding:24px;
+  }
+  .confirm-card{
+    background:var(--card-bg); border-radius:16px; width:100%; max-width:300px;
+    padding:20px 18px; box-shadow:0 8px 28px rgba(0,0,0,.25); text-align:center;
+  }
+  .confirm-message{ margin:0 0 16px; font-size:13.5px; line-height:1.5; color:var(--ink); word-break:break-word; }
+  .phone-action-actions{ display:flex; flex-direction:column; gap:8px; margin-bottom:10px; }
+  .phone-action-btn{
+    padding:11px; border-radius:10px; border:none; font-size:14px; font-weight:700; cursor:pointer; color:#fff;
+  }
+  .phone-action-call{ background:var(--teal); }
+  .phone-action-sms{ background:var(--coral); }
+  .confirm-cancel-link{
+    border:none; background:transparent; color:var(--ink-soft); font-size:12.5px; padding:6px; cursor:pointer; width:100%;
+  }
+
   .tabs{ display:flex; gap:6px; max-width:640px; margin:14px auto 0; padding:0 16px; overflow-x:auto; }
   .tab{
     flex:1; text-align:center; padding:10px 4px; font-family:'Noto Sans KR', sans-serif; font-weight:700;
@@ -444,7 +464,7 @@
 
 <div class="legend" id="legend"></div>
 
-<footer>상단 "✏️ 수정" 버튼을 눌러 수정모드를 켜야 편집할 수 있어요.<br>텍스트를 더블클릭(더블탭)하면 바로 수정돼요. 빈 시간칸을 더블클릭하면 새 일정이 추가돼요.<br>색 점을 눌러 카테고리를 고르고, 위/아래 작은 손잡이로 시작·종료 시간을 조절하세요. 일정을 길게 누르면 통째로 옮길 수 있어요.<br>삭제하려면 × 버튼을 눌러주세요.</footer>
+<footer>상단 "✏️ 수정" 버튼을 눌러 수정모드를 켜야 편집할 수 있어요.<br>텍스트를 더블클릭(더블탭)하면 바로 수정돼요. 빈 시간칸을 더블클릭하면 새 일정이 추가돼요.<br>색 점을 눌러 카테고리를 고르고, 위/아래 작은 손잡이로 시작·종료 시간을 조절하세요. 일정을 길게 누르면 통째로 옮길 수 있어요.<br>삭제하려면 × 버튼을 눌러주세요.<br>연락처의 전화번호를 길게 누르면 전화·문자 중 선택할 수 있어요.</footer>
 
 <div class="modal-overlay" id="snapshotModal" style="display:none;">
   <div class="modal-card">
@@ -453,6 +473,17 @@
       <button class="modal-close" id="snapshotCloseBtn" type="button">×</button>
     </div>
     <div class="modal-body" id="snapshotList"></div>
+  </div>
+</div>
+
+<div class="confirm-overlay" id="phoneActionOverlay" style="display:none;">
+  <div class="confirm-card">
+    <p class="confirm-message" id="phoneActionWho"></p>
+    <div class="phone-action-actions">
+      <button type="button" class="phone-action-btn phone-action-call" id="phoneActionCallBtn">📞 전화 걸기</button>
+      <button type="button" class="phone-action-btn phone-action-sms" id="phoneActionSmsBtn">💬 문자 보내기</button>
+    </div>
+    <button type="button" class="confirm-cancel-link" id="phoneActionCancelBtn">취소</button>
   </div>
 </div>
 
@@ -1629,19 +1660,28 @@ function buildContactsPanel(){
       makeDblClickEditable(td, ph, (val)=>{ row[key]=val; markDirty('contacts'); });
       if(key === 'phone'){
         td.classList.add('phone-cell');
-        let callTimer = null;
-        td.addEventListener('click', ()=>{
-          clearTimeout(callTimer);
-          callTimer = setTimeout(()=>{
+        let pressTimer = null, pStartX = 0, pStartY = 0;
+        const THRESHOLD = 500, TOLERANCE = 8;
+        const cancelPress = ()=>{ if(pressTimer){ clearTimeout(pressTimer); pressTimer = null; } };
+        td.addEventListener('pointerdown', (e)=>{
+          pStartX = e.clientX; pStartY = e.clientY;
+          cancelPress();
+          pressTimer = setTimeout(()=>{
+            pressTimer = null;
             const phone = row.phone;
             if(!phone) return;
             const who = [row.academy, row.role, phone].filter(Boolean).join(' ');
-            if(confirm(`${who}로 전화를 거시겠습니까?`)){
-              window.location.href = 'tel:' + phone.replace(/[^0-9+]/g,'');
-            }
-          }, 280);
+            openPhoneActionModal(who, phone);
+          }, THRESHOLD);
         });
-        td.addEventListener('dblclick', ()=> clearTimeout(callTimer));
+        td.addEventListener('pointermove', (e)=>{
+          if(!pressTimer) return;
+          if(Math.abs(e.clientX-pStartX)>TOLERANCE || Math.abs(e.clientY-pStartY)>TOLERANCE) cancelPress();
+        });
+        td.addEventListener('pointerup', cancelPress);
+        td.addEventListener('pointerleave', cancelPress);
+        td.addEventListener('pointercancel', cancelPress);
+        td.addEventListener('contextmenu', (e)=> e.preventDefault());
       }
       tr.appendChild(td);
     });
@@ -2240,6 +2280,26 @@ document.getElementById('snapshotCloseBtn').addEventListener('click', ()=>{
 });
 document.getElementById('snapshotModal').addEventListener('click', (e)=>{
   if(e.target.id === 'snapshotModal') document.getElementById('snapshotModal').style.display = 'none';
+});
+
+function closePhoneActionModal(){
+  document.getElementById('phoneActionOverlay').style.display = 'none';
+}
+function openPhoneActionModal(who, phone){
+  document.getElementById('phoneActionWho').textContent = who;
+  document.getElementById('phoneActionCallBtn').onclick = ()=>{
+    closePhoneActionModal();
+    window.location.href = 'tel:' + phone.replace(/[^0-9+]/g,'');
+  };
+  document.getElementById('phoneActionSmsBtn').onclick = ()=>{
+    closePhoneActionModal();
+    window.location.href = 'sms:' + phone.replace(/[^0-9+]/g,'');
+  };
+  document.getElementById('phoneActionOverlay').style.display = 'flex';
+}
+document.getElementById('phoneActionCancelBtn').addEventListener('click', closePhoneActionModal);
+document.getElementById('phoneActionOverlay').addEventListener('click', (e)=>{
+  if(e.target.id === 'phoneActionOverlay') closePhoneActionModal();
 });
 
 async function startApp(){
