@@ -33,6 +33,7 @@
   }
 
   header{ padding:28px 20px 14px; text-align:center; position:relative; }
+  .logout-corner{ position:absolute; top:10px; right:10px; font-size:10.5px; padding:5px 10px; }
   header .eyebrow{
     font-family:'Noto Sans KR', sans-serif; font-size:14px; color:var(--teal); letter-spacing:.08em;
     margin-bottom:4px; display:flex; align-items:center; justify-content:center; gap:4px; flex-wrap:wrap;
@@ -297,10 +298,13 @@
   /* ---- 선생님 연락처 / 학원비 탭 ---- */
   .info-panel{ display:flex; flex-direction:column; gap:16px; }
   .fee-table-wrap{ position:relative; -webkit-touch-callout:none; }
-  .fee-table-scroll{ overflow-x:auto; border-radius:10px; border:1px solid var(--paper-line); }
-  .fee-table{ width:100%; min-width:420px; border-collapse:collapse; font-size:11.5px; }
-  .fee-table th, .fee-table td{ border:1px solid var(--paper-line); padding:5px 6px; text-align:center; }
-  .fee-table th{ background:#F5F0E3; font-weight:700; font-size:10.5px; white-space:nowrap; cursor:pointer; }
+  .fee-table-scroll{ border-radius:10px; border:1px solid var(--paper-line); }
+  .fee-table{ width:100%; table-layout:fixed; border-collapse:collapse; font-size:11px; }
+  .fee-table th, .fee-table td{
+    border:1px solid var(--paper-line); padding:4px 2px; text-align:center;
+    word-break:break-all; overflow-wrap:break-word;
+  }
+  .fee-table th{ background:#F5F0E3; font-weight:700; font-size:9.5px; line-height:1.25; cursor:pointer; }
   .fee-table th:hover{ background:#F0E6CC; }
   .fee-total-row td{ font-weight:700; background:#FAF6EB; }
 
@@ -339,7 +343,9 @@
     .tg-event .time{ font-size:9px; }
     .school-badge{ font-size:10px; }
     .legend span, footer{ font-size:10.5px; }
-    .fee-table{ font-size:10px; }
+    .fee-table{ font-size:9.5px; }
+    .fee-table th, .fee-table td{ padding:3px 1px; }
+    .fee-table th{ font-size:8.5px; }
     .hw-kids{ gap:8px; }
     .cat-chip{ font-size:10.5px; }
   }
@@ -399,9 +405,9 @@
 <div id="appRoot" style="display:none;">
 
 <header>
+  <button class="btn ghost logout-corner" id="logoutBtn">로그아웃</button>
   <div class="eyebrow" id="eyebrow"></div>
   <h1 id="mainTitle">이현 · 규현 일정표</h1>
-  <p id="mainSubtitle">요일 탭을 눌러 하루 일정을 확인하세요</p>
 </header>
 
 <div class="top-bar">
@@ -411,7 +417,6 @@
     <button class="btn ghost" id="exportBtn">⬇️ 엑셀로 내보내기</button>
     <button class="btn ghost" id="fixBtn">📌 일정 fix</button>
     <button class="btn ghost" id="viewSnapshotsBtn">🕰️ 이전 일정 보기</button>
-    <button class="btn ghost" id="logoutBtn">로그아웃</button>
   </div>
 </div>
 
@@ -1087,16 +1092,12 @@ function updateSyncPill(){
 
 function applyTitleToDOM(){
   const h1 = document.getElementById('mainTitle');
-  const p = document.getElementById('mainSubtitle');
   if(h1.textContent !== TITLE) h1.textContent = TITLE;
-  if(p.textContent !== SUBTITLE) p.textContent = SUBTITLE;
   buildEyebrow();
 }
 function initStaticEditables(){
   const h1 = document.getElementById('mainTitle');
-  const p = document.getElementById('mainSubtitle');
   makeDblClickEditable(h1, '제목을 입력하세요', (val)=>{ TITLE = val; markDirty('title'); });
-  makeDblClickEditable(p, '부제목을 입력하세요', (val)=>{ SUBTITLE = val; markDirty('title'); });
 }
 
 function onEyebrowDblClick(e){
