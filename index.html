@@ -1607,14 +1607,13 @@ googleLoginBtn.addEventListener('click', ()=>{
   googleLoginBtn.disabled = true;
   try{
     const provider = new firebase.auth.GoogleAuthProvider();
-    firebase.auth().signInWithPopup(provider)
-      .catch((err)=>{
-        console.error('login error', err);
-        if(err.code !== 'auth/popup-closed-by-user'){
-          loginError.textContent = `로그인 실패 (${err.code || 'unknown'}): ${err.message || err}`;
-        }
-      })
-      .finally(()=>{ googleLoginBtn.disabled = false; });
+    /* signInWithPopup은 모바일 브라우저에서 팝업 처리가 불안정해서
+       전체 페이지가 넘어갔다 돌아오는 리다이렉트 방식을 쓴다. */
+    firebase.auth().signInWithRedirect(provider).catch((err)=>{
+      console.error('login redirect error', err);
+      loginError.textContent = `로그인 실패 (${err.code || 'unknown'}): ${err.message || err}`;
+      googleLoginBtn.disabled = false;
+    });
   }catch(err){
     console.error('login call error', err);
     loginError.textContent = `로그인 오류: ${err.message || err}`;
@@ -1650,6 +1649,12 @@ async function initAuth(){
   }catch(err){
     console.error('auth init error', err);
     loginError.textContent = `로그인 기능을 초기화하지 못했어요: ${err.message || err}`;
+  }
+  try{
+    await firebase.auth().getRedirectResult();
+  }catch(err){
+    console.error('redirect result error', err);
+    loginError.textContent = `로그인 실패 (${err.code || 'unknown'}): ${err.message || err}`;
   }
 }
 initAuth();
