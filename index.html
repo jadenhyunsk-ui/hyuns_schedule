@@ -166,8 +166,9 @@
     border:none; background:transparent; color:var(--ink-soft); font-size:12.5px; padding:6px; cursor:pointer; width:100%;
   }
 
-  .tabs{ display:flex; gap:6px; max-width:640px; margin:14px auto 0; padding:0 16px; overflow-x:auto; }
+  .tabs{ display:flex; gap:6px; max-width:640px; margin:4px auto 0; padding:10px 16px 0; overflow-x:auto; }
   .tab{
+    position:relative;
     flex:1; text-align:center; padding:10px 4px; font-family:'Noto Sans KR', sans-serif; font-weight:700;
     font-size:clamp(14px, 4vw, 18px);
     border-radius:14px 14px 0 0; background:#EFE7D4; color:var(--ink-soft); cursor:pointer;
@@ -176,6 +177,11 @@
   }
   .tab:hover{ background:#F3ECDC; }
   .tab.active{ background:var(--card-bg); color:var(--teal); border-color:var(--paper-line); box-shadow:0 -2px 6px rgba(51,48,42,.04); }
+  .tab-badge{
+    position:absolute; top:-6px; left:-6px; min-width:17px; height:17px; padding:0 4px;
+    border-radius:50%; background:var(--coral); color:#fff; font-size:10px; font-weight:700;
+    display:flex; align-items:center; justify-content:center; line-height:1; box-shadow:0 1px 3px rgba(0,0,0,.25);
+  }
 
   main{ max-width:640px; margin:0 auto; padding:0 16px 8px; }
 
@@ -628,7 +634,11 @@ const TERM_OPTIONS = ["1학기","2학기","여름방학","겨울방학"];
 
 let DATA = null, CONTACTS = null, FEES = null, CATEGORIES = null, HOMEWORK = null, SNAPSHOTS = null;
 let TITLE = DEFAULT_TITLE, SUBTITLE = DEFAULT_SUBTITLE, YEAR = DEFAULT_YEAR, TERM = DEFAULT_TERM;
-let activeDay = "월";
+let EYEBROW_OVERRIDE = null;
+/* Date#getDay(): 0=일,1=월,2=화,3=수,4=목,5=금,6=토 — 주말(토/일)은 월요일 탭으로 대체 */
+const DOW_TO_TAB = ['월','월','화','수','목','금','월'];
+const TAB_DOW = {'월':1, '화':2, '수':3, '목':4, '금':5};
+let activeDay = DOW_TO_TAB[new Date().getDay()];
 let eyebrowEditing = false;
 let editMode = false;
 const days = Object.keys(DEFAULT_DATA);
@@ -1001,6 +1011,7 @@ async function loadLocalState(){
         SUBTITLE = s.title.subtitle || DEFAULT_SUBTITLE;
         YEAR = s.title.year || DEFAULT_YEAR;
         TERM = TERM_OPTIONS.includes(s.title.term) ? s.title.term : DEFAULT_TERM;
+        EYEBROW_OVERRIDE = s.title.eyebrow || null;
       }
       return;
     }
@@ -1021,7 +1032,7 @@ async function persistLocal(){
   try{
     const snapshot = {
       data:DATA, contacts:CONTACTS, fees:FEES, categories:CATEGORIES, homework:HOMEWORK, snapshots:SNAPSHOTS,
-      title:{title:TITLE, subtitle:SUBTITLE, year:YEAR, term:TERM}
+      title:{title:TITLE, subtitle:SUBTITLE, year:YEAR, term:TERM, eyebrow:EYEBROW_OVERRIDE}
     };
     await window.storage.set(LOCAL_KEY, JSON.stringify(snapshot), false);
   }catch(e){ console.error('local save error', e); }
@@ -1071,7 +1082,7 @@ function onFbValue(snap){
   if(!remote){
     fbRef.set({
       data:DATA, contacts:CONTACTS, fees:FEES, categories:CATEGORIES, homework:HOMEWORK, snapshots:SNAPSHOTS,
-      title:{title:TITLE, subtitle:SUBTITLE, year:YEAR, term:TERM}
+      title:{title:TITLE, subtitle:SUBTITLE, year:YEAR, term:TERM, eyebrow:EYEBROW_OVERRIDE}
     }).catch(e=>console.error(e));
     updateSyncPill();
     return;
@@ -1085,11 +1096,13 @@ function onFbValue(snap){
   if(!fbWriteTimers.snapshots && remote.snapshots && JSON.stringify(remote.snapshots)!==JSON.stringify(SNAPSHOTS)){ SNAPSHOTS=remote.snapshots; changed=true; }
   if(!fbWriteTimers.title && remote.title){
     const t = remote.title;
-    if(t.title!==TITLE || t.subtitle!==SUBTITLE || t.year!==YEAR || t.term!==TERM){
+    const remoteEyebrow = t.eyebrow || null;
+    if(t.title!==TITLE || t.subtitle!==SUBTITLE || t.year!==YEAR || t.term!==TERM || remoteEyebrow!==EYEBROW_OVERRIDE){
       TITLE = t.title || DEFAULT_TITLE;
       SUBTITLE = t.subtitle || DEFAULT_SUBTITLE;
       YEAR = t.year || DEFAULT_YEAR;
       TERM = TERM_OPTIONS.includes(t.term) ? t.term : DEFAULT_TERM;
+      EYEBROW_OVERRIDE = remoteEyebrow;
       changed = true;
     }
   }
@@ -1109,7 +1122,7 @@ function fbQueueSync(key){
     const getters = {
       data: ()=>DATA, contacts: ()=>CONTACTS, fees: ()=>FEES,
       categories: ()=>CATEGORIES, homework: ()=>HOMEWORK, snapshots: ()=>SNAPSHOTS,
-      title: ()=>({title:TITLE, subtitle:SUBTITLE, year:YEAR, term:TERM})
+      title: ()=>({title:TITLE, subtitle:SUBTITLE, year:YEAR, term:TERM, eyebrow:EYEBROW_OVERRIDE})
     };
     if(!getters[key]){ delete fbWriteTimers[key]; return; }
     fbRef.child(key).set(getters[key]())
@@ -1170,7 +1183,7 @@ function buildEyebrow(){
       if(two===YEAR) opt.selected=true;
       yearSelect.appendChild(opt);
     }
-    yearSelect.addEventListener('change', ()=>{ YEAR=yearSelect.value; markDirty('title'); });
+    yearSelect.addEventListener('change', ()=>{ YEAR=yearSelect.value; EYEBROW_OVERRIDE=null; markDirty('title'); });
     const yearLabel=document.createTextNode('년');
     const termSelect=document.createElement('select');
     termSelect.className='eyebrow-select';
@@ -1179,24 +1192,43 @@ function buildEyebrow(){
       if(t===TERM) opt.selected=true;
       termSelect.appendChild(opt);
     });
-    termSelect.addEventListener('change', ()=>{ TERM=termSelect.value; markDirty('title'); });
+    termSelect.addEventListener('change', ()=>{ TERM=termSelect.value; EYEBROW_OVERRIDE=null; markDirty('title'); });
     const suffix=document.createTextNode(' · WEEKLY PLANNER');
     el.appendChild(yearSelect); el.appendChild(yearLabel); el.appendChild(termSelect); el.appendChild(suffix);
   } else {
-    el.textContent = `${YEAR}년 ${TERM} · WEEKLY PLANNER`;
+    el.textContent = EYEBROW_OVERRIDE ? `${EYEBROW_OVERRIDE} · WEEKLY PLANNER` : `${YEAR}년 ${TERM} · WEEKLY PLANNER`;
     el.title = '더블클릭해서 연도/학기 변경';
     el.addEventListener('dblclick', onEyebrowDblClick);
   }
 }
 
+function overdueHomeworkCount(day){
+  normalizeHomework();
+  return HOMEWORK.items.filter(it=> it.day===day && it.mark!==2).length;
+}
 function buildTabs(){
   const tabsEl = document.getElementById('tabs');
   tabsEl.innerHTML = '';
+  const todayDow = new Date().getDay();
+  const isWeekend = todayDow===0 || todayDow===6;
   ALL_TABS.forEach(t=>{
     const tab = document.createElement('div');
     tab.className = 'tab' + (t.id===activeDay ? ' active' : '');
     tab.textContent = t.label;
-    tab.addEventListener('click', ()=>{ activeDay = t.id; buildTabs(); renderPanels(); renderHomework(); });
+    const dow = TAB_DOW[t.id];
+    if(dow !== undefined){
+      const isPast = isWeekend ? true : dow < todayDow;
+      if(isPast){
+        const count = overdueHomeworkCount(t.id);
+        if(count > 0){
+          const badge = document.createElement('span');
+          badge.className = 'tab-badge';
+          badge.textContent = String(count);
+          tab.appendChild(badge);
+        }
+      }
+    }
+    tab.addEventListener('click', ()=>{ activeDay = t.id; renderPanels(); renderHomework(); });
     tabsEl.appendChild(tab);
   });
 }
@@ -1846,6 +1878,7 @@ function ensureHomeworkWeek(){
 
 function renderHomework(){
   normalizeHomework();
+  buildTabs();
   const wrapSection = document.getElementById('hwWrap');
   const title = document.getElementById('hwTitle');
   const kidsWrap = document.getElementById('hwKids');
@@ -2197,6 +2230,7 @@ function applySnapshot(snap){
     YEAR = snap.titleInfo.year || DEFAULT_YEAR;
     TERM = TERM_OPTIONS.includes(snap.titleInfo.term) ? snap.titleInfo.term : DEFAULT_TERM;
   }
+  EYEBROW_OVERRIDE = snap.title;
   markDirty('data'); markDirty('contacts'); markDirty('fees');
   markDirty('categories'); markDirty('homework'); markDirty('title');
   rerenderNow();
