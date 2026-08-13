@@ -6,15 +6,16 @@
 <title>이현 · 규현 주간 일정표</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@latest/dist/web/static/pretendard.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <style>
   :root{
-    --paper:#FBF6EC;
-    --paper-line:#E7DFCB;
-    --ink:#33302A;
-    --ink-soft:#6B6355;
-    --teal:#4A7C74;
-    --coral:#E0795F;
+    --paper:#F5F6F8;
+    --paper-line:#E4E6EB;
+    --ink:#23262B;
+    --ink-soft:#6B7078;
+    --teal:#2F8F82;
+    --coral:#EA6A50;
     --card-bg:#FFFFFF;
   }
 
@@ -23,10 +24,8 @@
   html{ overflow-x:hidden; }
   body{
     background:var(--paper);
-    background-image:linear-gradient(var(--paper-line) 1px, transparent 1px);
-    background-size:100% 42px;
     color:var(--ink);
-    font-family:'Noto Sans KR', sans-serif;
+    font-family:'Pretendard','Noto Sans KR', sans-serif;
     padding-bottom:60px;
     overflow-x:hidden;
     width:100%;
@@ -35,28 +34,62 @@
   header{ padding:28px 20px 14px; text-align:center; position:relative; }
   .logout-corner{
     position:absolute; top:12px; right:12px; font-size:11px; font-weight:600;
-    padding:5px 12px; border:none; background:rgba(74,124,116,.1); color:var(--teal);
+    padding:5px 12px; border:none; background:rgba(47,143,130,.1); color:var(--teal);
     box-shadow:none;
   }
   .logout-corner:hover{ background:var(--teal); color:#fff; transform:none; box-shadow:none; }
+  .view-toggle{ position:absolute; top:12px; left:12px; display:flex; gap:4px; }
+  .view-toggle-btn{
+    font-family:'Pretendard','Noto Sans KR', sans-serif; font-size:10px; font-weight:600; padding:4px 8px;
+    border-radius:12px; border:none; background:rgba(107,99,85,.08); color:var(--ink-soft); cursor:pointer;
+  }
+  .view-toggle-btn.active{ background:var(--teal); color:#fff; }
+  .kid-toggle{
+    position:absolute; top:36px; left:12px; display:flex; gap:8px;
+    font-size:10px; color:var(--ink-soft);
+  }
+  .kid-toggle label{ display:flex; align-items:center; gap:3px; cursor:pointer; user-select:none; }
+  .kid-toggle input{ accent-color:var(--teal); cursor:pointer; }
+
+  /* ---- PC(주간) 보기: 월~금을 한 번에 표시, 화면 폭 꽉 채움 ---- */
+  body.view-pc .tabs, body.view-pc main, body.view-pc .legend, body.view-pc .hw-wrap{
+    max-width:none; width:100%; padding-left:24px; padding-right:24px;
+  }
+  /* 요일 사이 간격 없이 하나로 이어진 표처럼 보이게 한다 (모바일용 카드 테두리/그림자는 제거) */
+  #panels.week-view{
+    display:flex; gap:0; align-items:flex-start; background:#fff;
+    border:1px solid var(--paper-line); border-radius:10px; overflow:hidden; overflow-x:auto;
+  }
+  #panels.week-view .day-panel[data-day]{
+    display:block; flex:1 1 0; min-width:200px;
+    border:none; border-radius:0; padding:0; box-shadow:none; background:transparent; animation:none;
+  }
+  #panels.week-view .day-panel[data-day]:not(:last-child){ border-right:2px solid var(--paper-line); }
+  #panels.week-view .day-panel:not([data-day]){ display:none; }
+  #panels.week-view .time-grid{ border:none; border-radius:0; }
+  .week-day-heading{ display:none; }
+  #panels.week-view .week-day-heading{
+    display:block; text-align:center; font-weight:700; font-size:15px; color:var(--teal);
+    margin-bottom:0; padding:6px 4px; background:#EEF0F3; border-bottom:2px solid var(--paper-line);
+  }
   header .eyebrow{
-    font-family:'Noto Sans KR', sans-serif; font-size:14px; color:var(--teal); letter-spacing:.08em;
+    font-family:'Pretendard','Noto Sans KR', sans-serif; font-size:14px; color:var(--teal); letter-spacing:.08em;
     margin-bottom:4px; display:flex; align-items:center; justify-content:center; gap:4px; flex-wrap:wrap;
     cursor:default;
   }
   .eyebrow-select{
-    font-family:'Noto Sans KR', sans-serif;
+    font-family:'Pretendard','Noto Sans KR', sans-serif;
     font-size:14px;
     color:var(--teal);
-    background:rgba(74,124,116,.08);
+    background:rgba(47,143,130,.08);
     border:none;
-    box-shadow:0 0 0 1.5px dashed rgba(74,124,116,.45);
+    box-shadow:0 0 0 1.5px rgba(47,143,130,.45);
     border-radius:6px;
     padding:1px 4px;
     cursor:pointer;
   }
   header h1{
-    font-family:'Noto Sans KR', sans-serif; font-weight:700;
+    font-family:'Pretendard','Noto Sans KR', sans-serif; font-weight:700;
     font-size:clamp(24px, 7vw, 34px);
     line-height:1.2; margin:0; color:var(--ink);
     word-break:keep-all; overflow-wrap:break-word;
@@ -67,11 +100,11 @@
   /* ---- 더블클릭(더블탭)으로 바로 수정되는 공통 필드 (수정모드에서만 편집 힌트 표시) ---- */
   .ed-field{ border-radius:4px; }
   body.edit-mode .ed-field{ cursor:text; }
-  body.edit-mode .ed-field:hover{ background:rgba(74,124,116,.07); }
+  body.edit-mode .ed-field:hover{ background:rgba(47,143,130,.07); }
   .ed-field[contenteditable="true"]{
     outline:none;
-    background:rgba(74,124,116,.14);
-    box-shadow:0 0 0 1.5px dashed rgba(74,124,116,.5);
+    background:rgba(47,143,130,.14);
+    box-shadow:0 0 0 1.5px rgba(47,143,130,.5);
   }
   .ed-field:empty::before{ content:attr(data-placeholder); opacity:.42; pointer-events:none; }
 
@@ -88,19 +121,19 @@
   .sync-pill{ font-size:11px; color:var(--ink-soft); white-space:nowrap; }
   .top-bar-actions{ display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; max-width:100%; }
   .btn{
-    font-family:'Noto Sans KR', sans-serif;
+    font-family:'Pretendard','Noto Sans KR', sans-serif;
     font-size:11.5px;
     font-weight:600;
     padding:6px 10px;
     border-radius:20px;
-    border:2px solid var(--paper-line);
+    border:1px solid var(--paper-line);
     background:var(--card-bg);
     color:var(--ink-soft);
     cursor:pointer;
-    box-shadow:0 1px 3px rgba(51,48,42,.06);
+    box-shadow:0 1px 3px rgba(35,38,43,.06);
     transition:all .15s ease;
   }
-  .btn:hover{ border-color:var(--teal); color:var(--teal); transform:translateY(-1px); box-shadow:0 3px 8px rgba(51,48,42,.1); }
+  .btn:hover{ border-color:var(--teal); color:var(--teal); transform:translateY(-1px); box-shadow:0 3px 8px rgba(35,38,43,.1); }
   .btn.ghost{ background:transparent; box-shadow:none; }
   .btn.active{ background:var(--teal); border-color:var(--teal); color:#fff; }
   .btn.active:hover{ color:#fff; }
@@ -114,11 +147,11 @@
 
   /* ---- 이전 일정(스냅샷) 모달 ---- */
   .modal-overlay{
-    position:fixed; inset:0; background:rgba(51,48,42,.45); z-index:90;
+    position:fixed; inset:0; background:rgba(35,38,43,.45); z-index:90;
     display:flex; align-items:center; justify-content:center; padding:20px;
   }
   .modal-card{
-    background:var(--card-bg); border-radius:16px; width:100%; max-width:360px;
+    background:var(--card-bg); border-radius:12px; width:100%; max-width:360px;
     max-height:80vh; display:flex; flex-direction:column; box-shadow:0 8px 28px rgba(0,0,0,.25);
   }
   .modal-header{
@@ -134,25 +167,25 @@
   .modal-body{ padding:12px 16px; overflow-y:auto; }
   .snap-empty{ font-size:12.5px; color:var(--ink-soft); text-align:center; padding:20px 4px; line-height:1.6; }
   .snap-item{
-    display:flex; align-items:center; gap:8px; padding:10px 0; border-bottom:1px dashed var(--paper-line);
+    display:flex; align-items:center; gap:8px; padding:10px 0; border-bottom:1px solid var(--paper-line);
   }
   .snap-item:last-child{ border-bottom:none; }
   .snap-info{ flex:1; min-width:0; }
   .snap-title{ font-size:13.5px; font-weight:700; color:var(--ink); word-break:break-all; }
   .snap-date{ font-size:11px; color:var(--ink-soft); margin-top:2px; }
   .snap-load-btn{
-    font-size:12px; font-weight:600; padding:6px 12px; border-radius:16px; border:2px solid var(--paper-line);
+    font-size:12px; font-weight:600; padding:6px 12px; border-radius:12px; border:1px solid var(--paper-line);
     background:var(--card-bg); color:var(--teal); cursor:pointer; flex-shrink:0;
   }
   .snap-load-btn:hover{ border-color:var(--teal); }
 
   /* ---- 자체 확인창 (브라우저 기본 confirm 대체) ---- */
   .confirm-overlay{
-    position:fixed; inset:0; background:rgba(51,48,42,.45); z-index:95;
+    position:fixed; inset:0; background:rgba(35,38,43,.45); z-index:95;
     display:flex; align-items:center; justify-content:center; padding:24px;
   }
   .confirm-card{
-    background:var(--card-bg); border-radius:16px; width:100%; max-width:300px;
+    background:var(--card-bg); border-radius:12px; width:100%; max-width:300px;
     padding:20px 18px; box-shadow:0 8px 28px rgba(0,0,0,.25); text-align:center;
   }
   .confirm-message{ margin:0 0 16px; font-size:13.5px; line-height:1.5; color:var(--ink); word-break:break-word; }
@@ -169,14 +202,14 @@
   .tabs{ display:flex; gap:6px; max-width:640px; margin:4px auto 0; padding:10px 16px 0; overflow-x:auto; }
   .tab{
     position:relative;
-    flex:1; text-align:center; padding:10px 4px; font-family:'Noto Sans KR', sans-serif; font-weight:700;
+    flex:1; text-align:center; padding:10px 4px; font-family:'Pretendard','Noto Sans KR', sans-serif; font-weight:700;
     font-size:clamp(14px, 4vw, 18px);
-    border-radius:14px 14px 0 0; background:#EFE7D4; color:var(--ink-soft); cursor:pointer;
+    border-radius:10px 10px 0 0; background:#ECEDF1; color:var(--ink-soft); cursor:pointer;
     border:2px solid transparent; border-bottom:none; transition:all .18s ease; user-select:none;
     white-space:nowrap;
   }
-  .tab:hover{ background:#F3ECDC; }
-  .tab.active{ background:var(--card-bg); color:var(--teal); border-color:var(--paper-line); box-shadow:0 -2px 6px rgba(51,48,42,.04); }
+  .tab:hover{ background:#E9EBEF; }
+  .tab.active{ background:var(--card-bg); color:var(--teal); border-color:var(--paper-line); box-shadow:0 -2px 6px rgba(35,38,43,.04); }
   .tab-badge{
     position:absolute; top:-6px; left:-6px; min-width:17px; height:17px; padding:0 4px;
     border-radius:50%; background:var(--coral); color:#fff; font-size:10px; font-weight:700;
@@ -186,14 +219,14 @@
   main{ max-width:640px; margin:0 auto; padding:0 16px 8px; }
 
   .day-panel{
-    display:none; background:var(--card-bg); border:2px solid var(--paper-line); border-radius:0 16px 16px 16px;
-    padding:16px; box-shadow:0 4px 16px rgba(51,48,42,.06); animation:fade .25s ease;
+    display:none; background:var(--card-bg); border:1px solid var(--paper-line); border-radius:0 12px 12px 12px;
+    padding:16px; box-shadow:0 4px 16px rgba(35,38,43,.06); animation:fade .25s ease;
   }
   .day-panel.active{ display:block; }
   @keyframes fade{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
 
   .kid-col h2{
-    font-family:'Noto Sans KR', sans-serif; font-size:clamp(16px, 4.4vw, 19px);
+    font-family:'Pretendard','Noto Sans KR', sans-serif; font-size:clamp(16px, 4.4vw, 19px);
     margin:0 0 2px; text-align:center; color:var(--ink);
   }
   .school-badge{
@@ -208,31 +241,35 @@
     border:1px solid var(--paper-line);
     border-radius:10px;
     overflow:hidden;
-    background:#FBF8F1;
+    background:#FAFBFC;
   }
-  .tg-corner{ background:#F5F0E3; border-bottom:2px solid var(--paper-line); }
+  .tg-corner{ background:#EEF0F3; border-bottom:2px solid var(--paper-line); }
   .kid-col.tg-kid-head{
-    grid-row:1; background:#F5F0E3; border-bottom:2px solid var(--paper-line);
-    border-left:1px solid var(--paper-line); padding:8px 4px 6px;
+    grid-row:1; background:#EEF0F3; border-bottom:2px solid var(--paper-line);
+    padding:8px 4px 6px;
   }
   .time-col-cell{
-    font-size:9.5px; color:var(--ink-soft); text-align:right; padding:2px 4px 0 0;
-    border-top:1px dashed var(--paper-line); white-space:nowrap;
+    font-size:10px; color:var(--ink-soft); text-align:right; padding:2px 4px 0 0;
+    border-top:1px solid var(--paper-line); white-space:nowrap;
   }
   .tg-cell-empty{
-    border-top:1px dashed var(--paper-line); border-left:1px solid var(--paper-line); cursor:copy;
+    border-top:1px solid var(--paper-line); cursor:copy;
   }
-  .tg-cell-empty:hover{ background:rgba(74,124,116,.1); }
+  .tg-cell-empty:hover{ background:rgba(47,143,130,.1); }
+  /* 헤더 바로 아래 첫 줄은 헤더의 실선 테두리와 겹치므로 점선을 없애 중복 표시를 막는다 */
+  .tg-first-row{ border-top:none !important; }
+  /* 이현/규현 사이를 전체 높이로 잇는 끊기지 않는 구분선 */
+  .tg-kid-divider{ border-left:1px solid var(--paper-line); pointer-events:none; }
 
   .tg-event{
-    position:relative; margin:1px 2px; border-radius:8px; padding:10px 6px 10px 12px;
-    font-size:11.5px; line-height:1.3; min-width:0;
-    box-shadow:0 1px 2px rgba(51,48,42,.1);
+    position:relative; margin:2px 4px; border-radius:8px; padding:10px 6px 10px 12px;
+    font-size:12px; line-height:1.32; min-width:0;
+    box-shadow:0 1px 2px rgba(35,38,43,.1);
   }
   .tg-event-head{ display:flex; align-items:center; gap:4px; min-width:0; }
-  .tg-event .time{ font-size:10px; font-weight:700; letter-spacing:.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; min-width:0; }
-  .tg-event .name{ font-family:'Noto Sans KR', sans-serif; font-weight:700; font-size:13px; line-height:1.22; margin:1px 0; word-break:break-word; }
-  .tg-event .meta{ font-size:9.5px; line-height:1.25; opacity:.85; word-break:break-word; }
+  .tg-event .time{ font-family:'Pretendard','Noto Sans KR', sans-serif; font-size:12.5px; font-weight:700; letter-spacing:.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; min-width:0; }
+  .tg-event .name{ font-family:'Pretendard','Noto Sans KR', sans-serif; font-weight:700; font-size:15.5px; line-height:1.28; margin:1px 0; word-break:break-word; }
+  .tg-event .meta{ font-family:'Pretendard','Noto Sans KR', sans-serif; font-size:12px; line-height:1.3; opacity:.85; word-break:break-word; }
   .tg-event.compact .name{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .tg-event.compact .meta{ display:none; }
   .tg-event .ed-field:empty::before{ opacity:.6; }
@@ -246,7 +283,7 @@
     box-shadow:0 6px 20px rgba(0,0,0,.18); padding:6px; max-height:280px; overflow-y:auto; min-width:160px;
   }
   .cat-picker-row{ display:flex; align-items:center; gap:7px; padding:6px 8px; border-radius:6px; cursor:pointer; font-size:12.5px; color:var(--ink); }
-  .cat-picker-row:hover{ background:#F3ECDC; }
+  .cat-picker-row:hover{ background:#E9EBEF; }
   .cat-picker-row.active{ background:#EAF1EF; font-weight:700; }
   .cat-picker-row i{ width:12px; height:12px; border-radius:4px; flex-shrink:0; display:inline-block; }
 
@@ -276,7 +313,7 @@
   .legend{ max-width:640px; margin:22px auto 0; padding:0 16px; display:flex; flex-wrap:wrap; gap:7px 9px; align-items:center; }
   .cat-chip{
     display:flex; align-items:center; gap:5px; font-size:11.5px; line-height:1.4; color:var(--ink-soft);
-    background:#F4EFE1; border-radius:20px; padding:3px 8px 3px 5px; -webkit-touch-callout:none;
+    background:#EEF0F3; border-radius:20px; padding:3px 8px 3px 5px; -webkit-touch-callout:none;
   }
   .cat-label{
     width:10em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
@@ -292,7 +329,7 @@
   .color-popup-tabs{ display:flex; gap:4px; margin-bottom:8px; }
   .color-tab{
     flex:1; font-size:12px; font-weight:600; padding:6px 4px; border-radius:8px; border:none;
-    background:#F3ECDC; color:var(--ink-soft); cursor:pointer;
+    background:#E9EBEF; color:var(--ink-soft); cursor:pointer;
   }
   .color-tab.active{ background:var(--teal); color:#fff; }
   .color-grid{ display:grid; grid-template-columns:repeat(5, 1fr); gap:6px; }
@@ -302,7 +339,7 @@
   }
   .color-swatch-check{
     position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-    color:#33302A; font-size:13px; font-weight:700; text-shadow:0 0 3px rgba(255,255,255,.9);
+    color:var(--ink); font-size:13px; font-weight:700; text-shadow:0 0 3px rgba(255,255,255,.9);
   }
   .color-wheel-wrap{ display:flex; flex-direction:column; align-items:center; gap:8px; }
   .color-wheel-box{ position:relative; }
@@ -337,24 +374,47 @@
   }
   .phone-cell{ cursor:pointer; color:var(--teal); font-weight:600; }
   .phone-cell:hover{ text-decoration:underline; }
-  .fee-table th{ background:#F5F0E3; font-weight:700; font-size:9.5px; line-height:1.25; cursor:pointer; }
-  .fee-table th:hover{ background:#F0E6CC; }
+  .fee-table th{ background:#EEF0F3; font-weight:700; font-size:10px; line-height:1.3; cursor:pointer; }
+  .fee-table th:hover{ background:#E3E6EC; }
 
   /* 학원비 표는 줄바꿈 없이 가로 스크롤로 보여준다 (연락처 표는 위의 고정폭/줄바꿈 유지) */
   .fee-table-scroll--fees{ overflow-x:auto; }
   .fee-table--fees{ width:auto; min-width:100%; table-layout:auto; }
   .fee-table--fees th, .fee-table--fees td{ white-space:nowrap; word-break:normal; padding:5px 8px; }
-  .fee-total-row td{ font-weight:700; background:#FAF6EB; }
+  .fee-total-row td{ font-weight:700; background:#F2F4F7; }
 
   /* ---- 숙제 체크리스트 ---- */
   .hw-wrap{ max-width:640px; margin:18px auto 0; padding:0 16px; }
-  .hw-card{ background:var(--card-bg); border:2px solid var(--paper-line); border-radius:16px; padding:14px 16px; box-shadow:0 4px 16px rgba(51,48,42,.06); }
-  .hw-card h3{ font-family:'Noto Sans KR', sans-serif; margin:0 0 8px; font-size:17px; display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
-  .hw-card h3 small{ font-size:11px; color:var(--ink-soft); font-weight:400; font-family:'Noto Sans KR', sans-serif; }
+  .hw-card{ background:var(--card-bg); border:1px solid var(--paper-line); border-radius:12px; padding:14px 16px; box-shadow:0 4px 16px rgba(35,38,43,.06); }
+  .hw-card h3{ font-family:'Pretendard','Noto Sans KR', sans-serif; margin:0 0 8px; font-size:17px; display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
+  .hw-card h3 small{ font-size:11px; color:var(--ink-soft); font-weight:400; font-family:'Pretendard','Noto Sans KR', sans-serif; }
   .hw-kids{ display:flex; gap:14px; }
   .hw-kid-col{ flex:1; min-width:0; }
+  #hwKids.hw-kids{
+    border:1px solid var(--paper-line); border-radius:10px; overflow:hidden; background:#FAFBFC;
+    padding:0; gap:0;
+  }
+  #hwKids.hw-kids .hw-kid-col{ padding:6px 8px; }
+  #hwKids.hw-kids .hw-kid-col + .hw-kid-col{ border-left:1px solid var(--paper-line); }
+  /* 일정표와 같은 폭 규칙(flex:1 1 0, min-width:200px)으로 맞추고, 간격 없이 선으로만 구분 */
+  .hw-week-row{
+    display:flex; gap:0; align-items:stretch;
+    border:1px solid var(--paper-line); border-radius:10px; overflow:hidden; overflow-x:auto;
+    background:#FAFBFC;
+  }
+  .hw-day-col{ display:flex; flex:1 1 0; min-width:200px; }
+  .hw-day-col:not(:last-child){ border-right:2px solid var(--paper-line); }
+  .hw-time-label{
+    flex-shrink:0; width:36px; writing-mode:vertical-rl; text-orientation:mixed;
+    display:flex; align-items:center; justify-content:center;
+    font-weight:700; font-size:12px; letter-spacing:.05em; color:var(--ink-soft);
+    background:#EEF0F3; border-right:1px solid var(--paper-line);
+  }
+  .hw-day-col .hw-kids{ flex:1; gap:0; padding:0; }
+  .hw-day-col .hw-kid-col{ padding:6px 8px; }
+  .hw-day-col .hw-kid-col + .hw-kid-col{ border-left:1px solid var(--paper-line); }
   .hw-kid-heading{ font-weight:700; font-size:13px; color:var(--teal); text-align:center; margin-bottom:4px; }
-  .hw-item{ display:flex; align-items:center; gap:8px; padding:6px 2px; border-bottom:1px dashed var(--paper-line); -webkit-touch-callout:none; }
+  .hw-item{ display:flex; align-items:center; gap:8px; padding:6px 2px; border-bottom:1px solid var(--paper-line); -webkit-touch-callout:none; }
   .hw-item:last-of-type{ border-bottom:none; }
   .hw-check{
     width:17px; height:17px; flex-shrink:0; border-radius:5px; border:2px solid var(--paper-line);
@@ -371,26 +431,26 @@
 
   @media (max-width:480px){
     .top-bar{ padding:0 10px; gap:6px; }
-    .btn{ font-size:10.5px; padding:5px 8px; }
+    .btn{ font-size:11px; padding:5px 8px; }
     main, .legend, .hw-wrap{ padding-left:10px; padding-right:10px; }
     header{ padding:22px 12px 12px; }
     .time-grid{ grid-template-columns:32px minmax(0,1fr) minmax(0,1fr); }
-    .tg-event{ padding:8px 4px 8px 10px; font-size:10.5px; }
-    .tg-event .name{ font-size:11.5px; }
-    .tg-event .meta{ font-size:8.5px; }
-    .tg-event .time{ font-size:9px; }
-    .school-badge{ font-size:10px; }
-    .legend span, footer{ font-size:10.5px; }
-    .fee-table{ font-size:9.5px; }
+    .tg-event{ padding:8px 4px 8px 10px; font-size:11.5px; }
+    .tg-event .name{ font-size:14.5px; }
+    .tg-event .meta{ font-size:11.5px; }
+    .tg-event .time{ font-size:12px; }
+    .school-badge{ font-size:10.5px; }
+    .legend span, footer{ font-size:11px; }
+    .fee-table{ font-size:10.5px; }
     .fee-table th, .fee-table td{ padding:3px 1px; }
-    .fee-table th{ font-size:8.5px; }
+    .fee-table th{ font-size:9.5px; }
     .hw-kids{ gap:8px; }
-    .cat-chip{ font-size:10.5px; }
+    .cat-chip{ font-size:11px; }
   }
   @media (max-width:360px){
     .time-grid{ grid-template-columns:30px minmax(0,1fr) minmax(0,1fr); }
-    .tg-event{ padding:7px 3px 7px 8px; font-size:10px; }
-    .tg-event .name{ font-size:11px; }
+    .tg-event{ padding:7px 3px 7px 8px; font-size:11px; }
+    .tg-event .name{ font-size:14px; }
   }
 
   /* ---- 로그인 ---- */
@@ -399,16 +459,16 @@
     display:flex; align-items:center; justify-content:center; padding:20px;
   }
   .login-card{
-    background:var(--card-bg); border:2px solid var(--paper-line); border-radius:16px;
-    padding:28px 24px; width:100%; max-width:320px; box-shadow:0 4px 16px rgba(51,48,42,.08);
+    background:var(--card-bg); border:1px solid var(--paper-line); border-radius:12px;
+    padding:28px 24px; width:100%; max-width:320px; box-shadow:0 4px 16px rgba(35,38,43,.08);
   }
-  .login-card h2{ font-family:'Noto Sans KR', sans-serif; font-size:22px; margin:0 0 4px; text-align:center; color:var(--ink); }
+  .login-card h2{ font-family:'Pretendard','Noto Sans KR', sans-serif; font-size:22px; margin:0 0 4px; text-align:center; color:var(--ink); }
   .login-card p{ margin:0 0 18px; font-size:12px; color:var(--ink-soft); text-align:center; }
   .login-field{ margin-bottom:12px; }
   .login-field label{ display:block; font-size:12px; color:var(--ink-soft); margin-bottom:4px; }
   .login-field input{
     width:100%; padding:9px 10px; border-radius:8px; border:1.5px solid var(--paper-line);
-    font-size:14px; font-family:'Noto Sans KR', sans-serif; box-sizing:border-box;
+    font-size:14px; font-family:'Pretendard','Noto Sans KR', sans-serif; box-sizing:border-box;
   }
   .login-field input:focus{ outline:none; border-color:var(--teal); }
   .login-submit{
@@ -443,13 +503,21 @@
 <div id="appRoot" style="display:none;">
 
 <header>
+  <div class="view-toggle" id="viewToggle">
+    <button type="button" class="view-toggle-btn" data-mode="mobile" id="viewMobileBtn">📱 모바일</button>
+    <button type="button" class="view-toggle-btn" data-mode="pc" id="viewPcBtn">🖥 PC</button>
+  </div>
+  <div class="kid-toggle" id="kidToggle" style="display:none;">
+    <label><input type="checkbox" id="kidToggleLeehyun" checked> 이현</label>
+    <label><input type="checkbox" id="kidToggleGyuhyun" checked> 규현</label>
+  </div>
   <button class="btn ghost logout-corner" id="logoutBtn">로그아웃</button>
   <div class="eyebrow" id="eyebrow"></div>
   <h1 id="mainTitle">이현 · 규현 일정표</h1>
 </header>
 
 <div class="top-bar">
-  <div class="sync-pill" id="syncPill">🟡 연결 중…</div>
+  <div class="sync-pill" id="syncPill">🟡 Connecting…</div>
   <div class="top-bar-actions">
     <button class="btn" id="editModeBtn">✏️ 수정</button>
     <button class="btn ghost" id="exportBtn">⬇️ 엑셀로 내보내기</button>
@@ -641,10 +709,21 @@ const TAB_DOW = {'월':1, '화':2, '수':3, '목':4, '금':5};
 let activeDay = DOW_TO_TAB[new Date().getDay()];
 let eyebrowEditing = false;
 let editMode = false;
+const VIEW_MODE_KEY = 'kidsScheduleViewMode';
+let viewMode = 'mobile';
+try{
+  viewMode = localStorage.getItem(VIEW_MODE_KEY) || (window.innerWidth >= 900 ? 'pc' : 'mobile');
+}catch(e){ /* storage unavailable */ }
+if(viewMode==='pc') activeDay = 'week';
+const HIDDEN_KIDS_KEY = 'kidsScheduleHiddenKids';
+let hiddenKids = {};
+try{ hiddenKids = JSON.parse(localStorage.getItem(HIDDEN_KIDS_KEY) || '{}'); }catch(e){ /* storage unavailable */ }
+function isKidVisible(kid){ return !hiddenKids[kid]; }
 const days = Object.keys(DEFAULT_DATA);
 const KIDS = ['이현','규현'];
 const EXTRA_TABS = [ {id:'contacts', label:'연락처'}, {id:'fees', label:'학원비'} ];
 const ALL_TABS = [...days.map(d=>({id:d, label:d})), ...EXTRA_TABS];
+const PC_TABS = [ {id:'week', label:'일정표'}, ...EXTRA_TABS ];
 
 function deepClone(o){ return JSON.parse(JSON.stringify(o)); }
 
@@ -704,15 +783,6 @@ function hexToRgb(hex){
   const num = parseInt(h,16) || 0xD9D3C6;
   return { r:(num>>16)&255, g:(num>>8)&255, b:num&255 };
 }
-function relLuminance(hex){
-  const {r,g,b} = hexToRgb(hex);
-  const lin = v=>{ v/=255; return v<=0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055,2.4); };
-  return 0.2126*lin(r)+0.7152*lin(g)+0.0722*lin(b);
-}
-function textColorFor(hex){
-  try{ return relLuminance(hex) > 0.55 ? '#33302A' : '#FFFFFF'; }catch(e){ return '#33302A'; }
-}
-
 /* ===== HSL 원형 색상표 ===== */
 function hslToRgb(h, s, l){
   h = ((h % 360) + 360) % 360; s = clamp(s,0,100)/100; l = clamp(l,0,100)/100;
@@ -1141,9 +1211,9 @@ function markDirty(key){
 function updateSyncPill(){
   const pill = document.getElementById('syncPill');
   if(!pill) return;
-  if(fbStatus==='synced') pill.textContent = '🟢 가족과 실시간 동기화 중';
-  else if(fbStatus==='error') pill.textContent = '🔴 동기화 연결 실패 (새로고침 해보세요)';
-  else pill.textContent = '🟡 연결 중…';
+  if(fbStatus==='synced') pill.textContent = '🟢 Connected';
+  else if(fbStatus==='error') pill.textContent = '🔴 Disconnected (새로고침 해보세요)';
+  else pill.textContent = '🟡 Connecting…';
 }
 
 function applyTitleToDOM(){
@@ -1211,20 +1281,38 @@ function buildTabs(){
   tabsEl.innerHTML = '';
   const todayDow = new Date().getDay();
   const isWeekend = todayDow===0 || todayDow===6;
-  ALL_TABS.forEach(t=>{
+  const tabList = viewMode==='pc' ? PC_TABS : ALL_TABS;
+  tabList.forEach(t=>{
     const tab = document.createElement('div');
     tab.className = 'tab' + (t.id===activeDay ? ' active' : '');
     tab.textContent = t.label;
-    const dow = TAB_DOW[t.id];
-    if(dow !== undefined){
-      const isPast = isWeekend ? true : dow < todayDow;
-      if(isPast){
-        const count = overdueHomeworkCount(t.id);
-        if(count > 0){
-          const badge = document.createElement('span');
-          badge.className = 'tab-badge';
-          badge.textContent = String(count);
-          tab.appendChild(badge);
+    if(t.id === 'week'){
+      tab.dataset.kind = 'week';
+      let total = 0;
+      days.forEach(day=>{
+        const dow = TAB_DOW[day];
+        const isPast = isWeekend ? true : dow < todayDow;
+        if(isPast) total += overdueHomeworkCount(day);
+      });
+      if(total > 0){
+        const badge = document.createElement('span');
+        badge.className = 'tab-badge';
+        badge.textContent = String(total);
+        tab.appendChild(badge);
+      }
+    } else {
+      const dow = TAB_DOW[t.id];
+      tab.dataset.kind = dow !== undefined ? 'day' : 'extra';
+      if(dow !== undefined){
+        const isPast = isWeekend ? true : dow < todayDow;
+        if(isPast){
+          const count = overdueHomeworkCount(t.id);
+          if(count > 0){
+            const badge = document.createElement('span');
+            badge.className = 'tab-badge';
+            badge.textContent = String(count);
+            tab.appendChild(badge);
+          }
         }
       }
     }
@@ -1302,11 +1390,19 @@ function deleteCategory(cat, idx){
 function renderPanels(){
   const panelsEl = document.getElementById('panels');
   panelsEl.innerHTML = '';
+  panelsEl.classList.toggle('week-view', viewMode==='pc' && activeDay==='week');
 
+  const isWeekView = viewMode==='pc' && activeDay==='week';
   days.forEach(day=>{
     const panel = document.createElement('div');
     panel.className = 'day-panel' + (day===activeDay ? ' active' : '');
-    panel.appendChild(buildDayGrid(day));
+    panel.dataset.day = day;
+    const heading = document.createElement('div');
+    heading.className = 'week-day-heading';
+    heading.textContent = day + '요일';
+    panel.appendChild(heading);
+    const hideTimeAxis = isWeekView && day !== '월';
+    panel.appendChild(buildDayGrid(day, hideTimeAxis));
     panelsEl.appendChild(panel);
   });
 
@@ -1405,18 +1501,22 @@ function pxToFineRow(px){
   return N_FINE_ROWS;
 }
 
-function buildDayGrid(day){
+function buildDayGrid(day, hideTimeAxis){
   const wrap = document.createElement('div');
   wrap.className = 'time-grid';
   wrap.style.gridTemplateRows = `auto ${FINE_ROW_HEIGHTS.map(h=>`${h}px`).join(' ')}`;
+  const visibleKids = KIDS.filter(isKidVisible);
+  const timeColWidth = hideTimeAxis ? '0px' : '36px';
+  wrap.style.gridTemplateColumns = `${timeColWidth} ${visibleKids.map(()=>'minmax(0,1fr)').join(' ')}`;
 
   const corner = document.createElement('div');
   corner.className = 'tg-corner';
   corner.style.gridColumn = '1';
   corner.style.gridRow = '1';
+  if(hideTimeAxis) corner.style.display = 'none';
   wrap.appendChild(corner);
 
-  ['이현','규현'].forEach((kid, ki)=>{
+  visibleKids.forEach((kid, ki)=>{
     const info = DATA[day][kid];
     const colNum = ki + 2;
 
@@ -1462,7 +1562,7 @@ function buildDayGrid(day){
       if(isBlockCovered(b)) continue;
       const blockStart = FINE_BLOCK_START[b], blockEnd = FINE_BLOCK_END[b];
       const cell = document.createElement('div');
-      cell.className = 'tg-cell-empty';
+      cell.className = 'tg-cell-empty' + (b===0 ? ' tg-first-row' : '');
       cell.style.gridColumn = String(colNum);
       cell.style.gridRow = `${blockStart+2} / ${blockEnd+2}`;
       if(editMode){
@@ -1485,13 +1585,32 @@ function buildDayGrid(day){
     }
   });
 
-  for(let b=0; b<FINE_BLOCK_START.length; b++){
-    const cell = document.createElement('div');
-    cell.className = 'time-col-cell';
-    cell.textContent = POINT_LABELS[b];
-    cell.style.gridColumn = '1';
-    cell.style.gridRow = `${FINE_BLOCK_START[b]+2} / ${FINE_BLOCK_END[b]+2}`;
-    wrap.appendChild(cell);
+  /* 시간축/이현/규현 사이 구분선을 칸별 테두리 대신 전체 높이를 잇는 하나의 선으로 그려서
+     일정 박스에 가려 끊어져 보이지 않게 한다. */
+  if(!hideTimeAxis){
+    const axisDivider = document.createElement('div');
+    axisDivider.className = 'tg-kid-divider';
+    axisDivider.style.gridColumn = '2';
+    axisDivider.style.gridRow = `1 / ${N_FINE_ROWS + 2}`;
+    wrap.appendChild(axisDivider);
+  }
+  for(let ki=1; ki<visibleKids.length; ki++){
+    const divider = document.createElement('div');
+    divider.className = 'tg-kid-divider';
+    divider.style.gridColumn = String(ki + 2);
+    divider.style.gridRow = `1 / ${N_FINE_ROWS + 2}`;
+    wrap.appendChild(divider);
+  }
+
+  if(!hideTimeAxis){
+    for(let b=0; b<FINE_BLOCK_START.length; b++){
+      const cell = document.createElement('div');
+      cell.className = 'time-col-cell' + (b===0 ? ' tg-first-row' : '');
+      cell.textContent = POINT_LABELS[b];
+      cell.style.gridColumn = '1';
+      cell.style.gridRow = `${FINE_BLOCK_START[b]+2} / ${FINE_BLOCK_END[b]+2}`;
+      wrap.appendChild(cell);
+    }
   }
 
   return wrap;
@@ -1502,7 +1621,7 @@ function buildGridEventEl(day, kid, ev, idx, sRow, eRow){
   const div = document.createElement('div');
   div.className = 'tg-event' + ((eRow - sRow) <= 3 ? ' compact' : '');
   div.style.background = cat.color;
-  div.style.color = textColorFor(cat.color);
+  div.style.color = 'var(--ink)';
   div.dataset.day = day;
   div.dataset.kid = kid;
   div.dataset.idx = idx;
@@ -1876,6 +1995,50 @@ function ensureHomeworkWeek(){
   }
 }
 
+function buildHwKidColumn(day, kid, showKidLabel){
+  const col = document.createElement('div');
+  col.className = 'hw-kid-col';
+
+  if(showKidLabel !== false){
+    const heading = document.createElement('div');
+    heading.className = 'hw-kid-heading';
+    heading.textContent = kid;
+    col.appendChild(heading);
+  }
+
+  const list = document.createElement('div');
+  list.className = 'hw-list';
+  HOMEWORK.items.forEach((item, idx)=>{
+    if(item.day !== day || item.kid !== kid) return;
+    list.appendChild(buildHomeworkItem(item, idx));
+  });
+  col.appendChild(list);
+
+  if(editMode){
+    const addBtn = document.createElement('button');
+    addBtn.className = 'hw-add';
+    addBtn.textContent = '+ 숙제 추가';
+    addBtn.addEventListener('click', ()=>{
+      try{
+        normalizeHomework();
+        HOMEWORK.items.push({day, kid, text:'', mark:0});
+        const newIdx = HOMEWORK.items.length - 1;
+        markDirty('homework');
+        renderHomework();
+        requestAnimationFrame(()=>{
+          const el = document.querySelector(`.hw-text[data-idx="${newIdx}"]`);
+          if(el){ el.contentEditable='true'; el.focus(); placeCaretAtEnd(el); }
+        });
+      }catch(err){
+        console.error('hwAdd error', err);
+        showToast('숙제 추가 실패');
+      }
+    });
+    col.appendChild(addBtn);
+  }
+
+  return col;
+}
 function renderHomework(){
   normalizeHomework();
   buildTabs();
@@ -1883,55 +2046,43 @@ function renderHomework(){
   const title = document.getElementById('hwTitle');
   const kidsWrap = document.getElementById('hwKids');
   kidsWrap.innerHTML = '';
+
+  title.style.display = 'none';
+
+  if(viewMode==='pc' && activeDay==='week'){
+    wrapSection.style.display = '';
+    kidsWrap.className = 'hw-week-row';
+    days.forEach(day=>{
+      const dayCol = document.createElement('div');
+      dayCol.className = 'hw-day-col';
+      if(day === '월'){
+        const label = document.createElement('div');
+        label.className = 'hw-time-label';
+        label.textContent = 'HW';
+        label.title = '월요일마다 체크만 자동 초기화돼요';
+        dayCol.appendChild(label);
+      }
+      const kidsRow = document.createElement('div');
+      kidsRow.className = 'hw-kids';
+      KIDS.filter(isKidVisible).forEach(kid=> kidsRow.appendChild(buildHwKidColumn(day, kid, false)));
+      dayCol.appendChild(kidsRow);
+      kidsWrap.appendChild(dayCol);
+    });
+    return;
+  }
+
+  kidsWrap.className = 'hw-kids';
   if(!days.includes(activeDay)){
     wrapSection.style.display = 'none';
     return;
   }
   wrapSection.style.display = '';
-  title.innerHTML = `📝 ${activeDay}요일 숙제 <small>월요일마다 체크만 자동 초기화돼요</small>`;
-
-  KIDS.forEach(kid=>{
-    const col = document.createElement('div');
-    col.className = 'hw-kid-col';
-
-    const heading = document.createElement('div');
-    heading.className = 'hw-kid-heading';
-    heading.textContent = kid;
-    col.appendChild(heading);
-
-    const list = document.createElement('div');
-    list.className = 'hw-list';
-    HOMEWORK.items.forEach((item, idx)=>{
-      if(item.day !== activeDay || item.kid !== kid) return;
-      list.appendChild(buildHomeworkItem(item, idx));
-    });
-    col.appendChild(list);
-
-    if(editMode){
-      const addBtn = document.createElement('button');
-      addBtn.className = 'hw-add';
-      addBtn.textContent = '+ 숙제 추가';
-      addBtn.addEventListener('click', ()=>{
-        try{
-          normalizeHomework();
-          HOMEWORK.items.push({day:activeDay, kid, text:'', mark:0});
-          const newIdx = HOMEWORK.items.length - 1;
-          markDirty('homework');
-          renderHomework();
-          requestAnimationFrame(()=>{
-            const el = document.querySelector(`.hw-text[data-idx="${newIdx}"]`);
-            if(el){ el.contentEditable='true'; el.focus(); placeCaretAtEnd(el); }
-          });
-        }catch(err){
-          console.error('hwAdd error', err);
-          showToast('숙제 추가 실패');
-        }
-      });
-      col.appendChild(addBtn);
-    }
-
-    kidsWrap.appendChild(col);
-  });
+  const label = document.createElement('div');
+  label.className = 'hw-time-label';
+  label.textContent = 'HW';
+  label.title = '월요일마다 체크만 자동 초기화돼요';
+  kidsWrap.appendChild(label);
+  KIDS.filter(isKidVisible).forEach(kid=> kidsWrap.appendChild(buildHwKidColumn(activeDay, kid, false)));
 }
 function buildHomeworkItem(item, idx){
   const row = document.createElement('div');
@@ -1975,39 +2126,39 @@ async function exportExcel(){
     const ws = wb.addWorksheet('주간 일정표', { views:[{ state:'frozen', xSplit:1, ySplit:3 }] });
 
     const HEADER_ROWS = 3;
+    const XLSX_KIDS = KIDS.filter(isKidVisible);
     ws.getColumn(1).width = 9;
     let colIdx = 2;
     const dayColStart = {};
     days.forEach(day=>{
       dayColStart[day] = colIdx;
-      ws.getColumn(colIdx).width = 18;
-      ws.getColumn(colIdx+1).width = 18;
-      colIdx += 2;
+      XLSX_KIDS.forEach(()=>{ ws.getColumn(colIdx).width = 18; colIdx += 1; });
     });
 
-    const thinBorder = { style:'thin', color:{argb:'FFC9C1AE'} };
+    const XLSX_FONT = '맑은 고딕';
+    const thinBorder = { style:'thin', color:{argb:'FF000000'} };
     const borderAll = { top:thinBorder, bottom:thinBorder, left:thinBorder, right:thinBorder };
     const fill = (hex)=>({ type:'pattern', pattern:'solid', fgColor:{argb:'FF'+hex} });
 
     days.forEach(day=>{
       const c0 = dayColStart[day];
-      ws.mergeCells(1, c0, 1, c0+1);
+      if(XLSX_KIDS.length > 1){ ws.mergeCells(1, c0, 1, c0+XLSX_KIDS.length-1); }
       const cell = ws.getCell(1, c0);
       cell.value = day;
-      cell.font = { name:'Arial', bold:true, size:13 };
+      cell.font = { name:XLSX_FONT, bold:true, size:13, color:{argb:'FF000000'} };
       cell.alignment = { horizontal:'center', vertical:'middle' };
       cell.fill = fill('D9D2BF');
-      [c0, c0+1].forEach(cc=> ws.getCell(1, cc).border = borderAll);
+      for(let i=0;i<XLSX_KIDS.length;i++){ ws.getCell(1, c0+i).border = borderAll; }
     });
     ws.getCell(1,1).fill = fill('D9D2BF');
     ws.getCell(1,1).border = borderAll;
 
     days.forEach(day=>{
       const c0 = dayColStart[day];
-      ['이현','규현'].forEach((kid,i)=>{
+      XLSX_KIDS.forEach((kid,i)=>{
         const cell = ws.getCell(2, c0+i);
         cell.value = kid;
-        cell.font = { name:'Arial', bold:true, size:11 };
+        cell.font = { name:XLSX_FONT, bold:true, size:11, color:{argb:'FF000000'} };
         cell.alignment = { horizontal:'center', vertical:'middle' };
         cell.fill = fill('EDE7D6');
         cell.border = borderAll;
@@ -2018,10 +2169,10 @@ async function exportExcel(){
 
     days.forEach(day=>{
       const c0 = dayColStart[day];
-      ['이현','규현'].forEach((kid,i)=>{
+      XLSX_KIDS.forEach((kid,i)=>{
         const cell = ws.getCell(3, c0+i);
         cell.value = DATA[day][kid].school;
-        cell.font = { name:'Arial', size:9 };
+        cell.font = { name:XLSX_FONT, size:9, color:{argb:'FF000000'} };
         cell.alignment = { horizontal:'center', vertical:'middle', wrapText:true };
         cell.fill = fill('F5F0E3');
         cell.border = borderAll;
@@ -2036,7 +2187,7 @@ async function exportExcel(){
       const r = HEADER_ROWS + 1 + i;
       const cell = ws.getCell(r, 1);
       cell.value = POINT_LABELS[i];
-      cell.font = { name:'Arial', size:9 };
+      cell.font = { name:XLSX_FONT, size:12, bold:true, color:{argb:'FF000000'} };
       cell.alignment = { horizontal:'center', vertical:'top' };
       cell.fill = fill('F5F0E3');
       cell.border = borderAll;
@@ -2047,20 +2198,29 @@ async function exportExcel(){
       const r = HEADER_ROWS + 1 + i;
       days.forEach(day=>{
         const c0 = dayColStart[day];
-        [c0, c0+1].forEach(cc=> ws.getCell(r, cc).border = borderAll);
+        for(let k=0;k<XLSX_KIDS.length;k++){ ws.getCell(r, c0+k).border = borderAll; }
       });
     }
 
     days.forEach(day=>{
       const c0 = dayColStart[day];
-      ['이현','규현'].forEach((kid, ki)=>{
+      XLSX_KIDS.forEach((kid, ki)=>{
         const colI = c0 + ki;
-        let nextFree = 0;
-        DATA[day][kid].events.forEach(ev=>{
+        /* 배열에 추가된 순서가 아니라 실제 시작 시각순으로 정렬해야, 나중에 추가된
+           일정(새 카테고리로 만든 일정 포함)이 뒤로 밀리지 않고 제 시간에 표시된다. */
+        const placed = DATA[day][kid].events.map(ev=>{
           const rng = parseTimeRange(ev);
-          let sRow, eRow;
-          if(rng){ sRow = snapStart(rng[0]); eRow = snapEnd(rng[1]); }
-          else { sRow = nextFree; eRow = nextFree + 2; }
+          return { ev, sRow: rng ? snapStart(rng[0]) : null, eRow: rng ? snapEnd(rng[1]) : null };
+        }).sort((a,b)=>{
+          const as = a.sRow===null ? Infinity : a.sRow;
+          const bs = b.sRow===null ? Infinity : b.sRow;
+          return as - bs;
+        });
+
+        let nextFree = 0;
+        placed.forEach(p=>{
+          let sRow = p.sRow===null ? nextFree : p.sRow;
+          let eRow = p.eRow===null ? nextFree + 2 : p.eRow;
           sRow = Math.max(sRow, nextFree);
           if(eRow <= sRow) eRow = sRow + 1;
           eRow = Math.min(eRow, N_ROWS);
@@ -2071,112 +2231,54 @@ async function exportExcel(){
           if(r1 > r0){ ws.mergeCells(r0, colI, r1, colI); }
 
           const lines = [];
-          if(ev.name) lines.push(ev.name);
-          if(ev.time) lines.push(ev.time);
-          if(ev.meta) lines.push(ev.meta);
+          if(p.ev.name) lines.push(p.ev.name);
+          if(p.ev.time) lines.push(p.ev.time);
+          if(p.ev.meta) lines.push(p.ev.meta);
 
-          const cat = getCategory(ev.cat);
+          const cat = getCategory(p.ev.cat);
           const bg = cat.color.replace('#','');
-          const tx = textColorFor(cat.color).replace('#','');
           const cell = ws.getCell(r0, colI);
           cell.value = lines.join('\n');
           cell.alignment = { horizontal:'center', vertical:'middle', wrapText:true };
           cell.fill = fill(bg);
-          cell.font = { name:'Arial', size:9, bold:true, color:{argb:'FF'+tx} };
+          cell.font = { name:XLSX_FONT, size:10, bold:true, color:{argb:'FF000000'} };
           for(let rr=r0; rr<=r1; rr++){ ws.getCell(rr, colI).border = borderAll; }
         });
       });
     });
 
-    const ws2 = wb.addWorksheet('연락처/학원비');
-    ws2.getColumn(1).width = 20;
-    ws2.getColumn(2).width = 16;
-    ws2.getColumn(3).width = 16;
-    ws2.getColumn(4).width = 10;
-    ws2.getColumn(5).width = 24;
-    ws2.getColumn(6).width = 12;
-    ws2.getColumn(7).width = 8;
-
-    let r2 = 1;
-    ws2.mergeCells(r2,1,r2,3);
-    {
-      const cell = ws2.getCell(r2,1);
-      cell.value = '연락처';
-      cell.font = { name:'Arial', bold:true, size:13 };
-      cell.fill = fill('D9D2BF');
-      cell.alignment = { vertical:'middle' };
-      [1,2,3].forEach(c=> ws2.getCell(r2,c).border = borderAll);
-    }
-    r2++;
-    ['이름','구분','전화번호'].forEach((label,i)=>{
-      const cell = ws2.getCell(r2, i+1);
-      cell.value = label;
-      cell.font = { name:'Arial', bold:true, size:10 };
-      cell.fill = fill('EDE7D6');
-      cell.border = borderAll;
-      cell.alignment = { horizontal:'center', vertical:'middle' };
-    });
-    r2++;
-    CONTACTS.rows.forEach(row=>{
-      [row.academy, row.role, row.phone].forEach((val,i)=>{
-        const cell = ws2.getCell(r2, i+1);
-        cell.value = val || '';
-        cell.font = { name:'Arial', size:10 };
-        cell.border = borderAll;
-        cell.alignment = { vertical:'middle' };
+    normalizeHomework();
+    const hwByDayKid = {};
+    let hwMaxRows = 0;
+    days.forEach(day=>{
+      XLSX_KIDS.forEach(kid=>{
+        const items = HOMEWORK.items.filter(it=> it.day===day && it.kid===kid);
+        hwByDayKid[day+'|'+kid] = items;
+        hwMaxRows = Math.max(hwMaxRows, items.length);
       });
-      r2++;
     });
-    r2 += 1;
-
-    ws2.mergeCells(r2,1,r2,FEE_COLS.length);
-    {
-      const cell = ws2.getCell(r2,1);
-      cell.value = '학원비';
-      cell.font = { name:'Arial', bold:true, size:13 };
-      cell.fill = fill('D9D2BF');
-      cell.alignment = { vertical:'middle' };
-      for(let c=1;c<=FEE_COLS.length;c++) ws2.getCell(r2,c).border = borderAll;
-    }
-    r2++;
-
-    FEES.groups.forEach(group=>{
-      FEE_COLS.forEach((c,i)=>{
-        const cell = ws2.getCell(r2, i+1);
-        cell.value = c.label;
-        cell.font = { name:'Arial', bold:true, size:10 };
-        cell.fill = fill('EDE7D6');
-        cell.border = borderAll;
-        cell.alignment = { horizontal:'center', vertical:'middle' };
-      });
-      r2++;
-      group.rows.forEach(row=>{
-        FEE_COLS.forEach((c,i)=>{
-          const cell = ws2.getCell(r2, i+1);
-          cell.value = row[c.key] || '';
-          cell.font = { name:'Arial', size:10 };
-          cell.border = borderAll;
-          cell.alignment = { vertical:'middle' };
+    if(hwMaxRows > 0){
+      const hwStartRow = HEADER_ROWS + N_ROWS + 1;
+      for(let r=0; r<hwMaxRows; r++){
+        const rowNum = hwStartRow + r;
+        days.forEach(day=>{
+          const c0 = dayColStart[day];
+          XLSX_KIDS.forEach((kid,i)=>{
+            const item = hwByDayKid[day+'|'+kid][r];
+            const cell = ws.getCell(rowNum, c0+i);
+            cell.alignment = { horizontal:'center', vertical:'middle', wrapText:true };
+            cell.border = borderAll;
+            if(item){
+              cell.value = (item.mark===2 ? '✓ ' : '') + (item.text || '');
+              cell.font = item.mark===2
+                ? { name:XLSX_FONT, size:9, strike:true, color:{argb:'FF999999'} }
+                : { name:XLSX_FONT, size:9, color:{argb:'FF000000'} };
+            }
+          });
         });
-        r2++;
-      });
-      ws2.mergeCells(r2,1,r2,2);
-      const totalLabelCell = ws2.getCell(r2,1);
-      totalLabelCell.value = '합계';
-      totalLabelCell.font = { name:'Arial', bold:true, size:10 };
-      totalLabelCell.fill = fill('FAF6EB');
-      [1,2].forEach(c=> ws2.getCell(r2,c).border = borderAll);
-      const totalAmtCell = ws2.getCell(r2,3);
-      totalAmtCell.value = calcGroupTotal(group);
-      totalAmtCell.font = { name:'Arial', bold:true, size:10 };
-      totalAmtCell.fill = fill('FAF6EB');
-      totalAmtCell.border = borderAll;
-      for(let c=4;c<=FEE_COLS.length;c++){
-        ws2.getCell(r2,c).fill = fill('FAF6EB');
-        ws2.getCell(r2,c).border = borderAll;
+        ws.getRow(rowNum).height = 20;
       }
-      r2 += 2;
-    });
+    }
 
     const buffer = await wb.xlsx.writeBuffer();
     const blob = new Blob([buffer], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
@@ -2208,6 +2310,48 @@ document.getElementById('editModeBtn').addEventListener('click', ()=>{
   document.body.classList.toggle('edit-mode', editMode);
   rerenderNow();
 });
+
+function applyViewMode(){
+  document.body.classList.toggle('view-pc', viewMode==='pc');
+  document.getElementById('viewMobileBtn').classList.toggle('active', viewMode==='mobile');
+  document.getElementById('viewPcBtn').classList.toggle('active', viewMode==='pc');
+  document.getElementById('kidToggle').style.display = viewMode==='pc' ? 'flex' : 'none';
+  document.getElementById('kidToggleLeehyun').checked = isKidVisible('이현');
+  document.getElementById('kidToggleGyuhyun').checked = isKidVisible('규현');
+}
+function setKidHidden(kid, hidden){
+  if(hidden){
+    const otherKid = KIDS.find(k=> k!==kid);
+    if(!isKidVisible(otherKid)){
+      showToast('최소 한 명은 표시되어야 해요');
+      const cb = document.getElementById(kid==='이현' ? 'kidToggleLeehyun' : 'kidToggleGyuhyun');
+      if(cb) cb.checked = true;
+      return;
+    }
+  }
+  hiddenKids[kid] = hidden;
+  try{ localStorage.setItem(HIDDEN_KIDS_KEY, JSON.stringify(hiddenKids)); }catch(e){ /* storage unavailable */ }
+  renderPanels();
+  renderHomework();
+}
+document.getElementById('kidToggleLeehyun').addEventListener('change', (e)=> setKidHidden('이현', !e.target.checked));
+document.getElementById('kidToggleGyuhyun').addEventListener('change', (e)=> setKidHidden('규현', !e.target.checked));
+function setViewMode(mode){
+  if(mode===viewMode) return;
+  viewMode = mode;
+  try{ localStorage.setItem(VIEW_MODE_KEY, mode); }catch(e){ /* storage unavailable */ }
+  if(mode==='pc' && days.includes(activeDay)){
+    activeDay = 'week';
+  } else if(mode==='mobile' && activeDay==='week'){
+    activeDay = DOW_TO_TAB[new Date().getDay()];
+  }
+  applyViewMode();
+  renderPanels();
+  renderHomework();
+}
+document.getElementById('viewMobileBtn').addEventListener('click', ()=> setViewMode('mobile'));
+document.getElementById('viewPcBtn').addEventListener('click', ()=> setViewMode('pc'));
+applyViewMode();
 
 function formatSnapDate(iso){
   try{
