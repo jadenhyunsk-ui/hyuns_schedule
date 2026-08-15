@@ -5,9 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>이현 · 규현 주간 일정표</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=Nanum+Gothic:wght@400;700;800&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=Nanum+Gothic:wght@400;700;800&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Jua&display=swap" rel="stylesheet">
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@latest/dist/web/static/pretendard.css" />
 <link rel="stylesheet" href="https://spoqa.github.io/spoqa-han-sans/css/SpoqaHanSansNeo.css">
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css" />
+<link rel="stylesheet" href="https://webfontworld.github.io/gmarket/GmarketSans.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <style>
   :root{
@@ -560,6 +562,9 @@
       <button type="button" class="font-opt-btn" data-font="nanum">나눔고딕</button>
       <button type="button" class="font-opt-btn" data-font="plex">IBM Plex Sans KR</button>
       <button type="button" class="font-opt-btn" data-font="spoqa">Spoqa Han Sans</button>
+      <button type="button" class="font-opt-btn" data-font="suit">SUIT</button>
+      <button type="button" class="font-opt-btn" data-font="gmarket">Gmarket Sans</button>
+      <button type="button" class="font-opt-btn" data-font="jua">주아체(어린이용)</button>
     </div>
   </div>
   <div class="font-popup-row">
@@ -2546,7 +2551,10 @@ const FONT_FAMILY_MAP = {
   noto: "'Noto Sans KR', sans-serif",
   nanum: "'Nanum Gothic', sans-serif",
   plex: "'IBM Plex Sans KR', sans-serif",
-  spoqa: "'Spoqa Han Sans Neo', 'Spoqa Han Sans', sans-serif"
+  spoqa: "'Spoqa Han Sans Neo', 'Spoqa Han Sans', sans-serif",
+  suit: "'SUIT', 'Pretendard', sans-serif",
+  gmarket: "'GmarketSans', 'Pretendard', sans-serif",
+  jua: "'Jua', sans-serif"
 };
 const SCALE_INPUT_IDS = { general:'scaleGeneralInput', time:'scaleTimeInput', name:'scaleNameInput', meta:'scaleMetaInput' };
 const SCALE_VAL_IDS = { general:'scaleGeneralVal', time:'scaleTimeVal', name:'scaleNameVal', meta:'scaleMetaVal' };
