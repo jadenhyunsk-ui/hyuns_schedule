@@ -46,7 +46,8 @@
     box-shadow:none;
   }
   .logout-corner:hover{ background:var(--teal); color:#fff; transform:none; box-shadow:none; }
-  .view-toggle{ position:absolute; top:12px; left:12px; display:flex; gap:4px; }
+  .view-toggle-row{ position:absolute; top:12px; left:12px; display:flex; align-items:center; gap:10px; }
+  .view-toggle{ display:flex; gap:4px; }
   .view-toggle-btn{
     font-family:var(--app-font); font-size:10px; font-weight:600; padding:4px 8px;
     border-radius:12px; border:none; background:rgba(107,99,85,.08); color:var(--ink-soft); cursor:pointer;
@@ -63,8 +64,7 @@
   body.view-pc .tabs, body.view-pc main, body.view-pc .legend, body.view-pc .hw-wrap, body.view-pc .top-bar{
     max-width:none; width:100%; padding-left:24px; padding-right:24px;
   }
-  body.view-pc header{ text-align:left; }
-  body.view-pc .eyebrow{ justify-content:flex-start; }
+  body.view-pc .tab{ font-size:13px; padding:8px 4px; }
   /* 요일 사이 간격 없이 하나로 이어진 표처럼 보이게 한다 (모바일용 카드 테두리/그림자는 제거) */
   #panels.week-view{
     display:flex; gap:0; align-items:flex-start; background:#fff;
@@ -86,7 +86,7 @@
   }
   header .eyebrow{
     font-family:var(--app-font); font-size:14px; color:var(--teal); letter-spacing:.08em;
-    margin-top:26px; margin-bottom:4px; display:flex; align-items:center; justify-content:center; gap:4px; flex-wrap:wrap;
+    margin-top:42px; margin-bottom:4px; display:flex; align-items:center; justify-content:center; gap:4px; flex-wrap:wrap;
     cursor:default;
   }
   .eyebrow-select{
@@ -166,6 +166,7 @@
     transition:all .15s ease;
   }
   .btn:hover{ border-color:var(--teal); color:var(--teal); transform:translateY(-1px); box-shadow:0 3px 8px rgba(35,38,43,.1); }
+  .excel-icon{ vertical-align:-4px; margin-right:1px; }
   .btn.ghost{ background:transparent; box-shadow:none; }
   .btn.active{ background:var(--teal); border-color:var(--teal); color:#fff; }
   .btn.active:hover{ color:#fff; }
@@ -306,6 +307,17 @@
   .tg-event.compact .meta{ display:none; }
   .tg-event .ed-field:empty::before{ opacity:.6; }
 
+  /* ---- 오늘 칸에 표시되는 현재 시각 파란 줄(5분 단위 스냅) ---- */
+  .now-line-wrap{ position:relative; pointer-events:none; z-index:4; }
+  .now-line{
+    position:absolute; left:0; right:0; height:2px; background:#2F6FEA;
+    box-shadow:0 0 3px rgba(47,111,234,.6);
+  }
+  .now-line::before{
+    content:''; position:absolute; left:-3px; top:50%; transform:translateY(-50%);
+    width:7px; height:7px; border-radius:50%; background:#2F6FEA;
+  }
+
   .cat-dot{
     display:inline-block; width:10px; height:10px; border-radius:50%; cursor:pointer; flex-shrink:0;
     box-shadow:0 0 0 1px rgba(0,0,0,.35);
@@ -436,6 +448,10 @@
   /* ---- 숙제 체크리스트 ---- */
   .hw-wrap{ max-width:640px; margin:18px auto 0; padding:0 16px; }
   .hw-card{ background:var(--card-bg); border:1px solid var(--paper-line); border-radius:12px; padding:14px 16px; box-shadow:0 4px 16px rgba(35,38,43,.06); }
+  /* PC 주간뷰에서는 좌우 패딩을 없애고, 안쪽 표의 테두리/배경도 없애서
+     흰색 카드 배경 하나만 남긴다 → 위 일정표(#panels.week-view)와 폭·테두리가 정확히 일치한다 */
+  .hw-card.hw-card--flush{ padding-left:0; padding-right:0; border-radius:10px; }
+  .hw-card.hw-card--flush .hw-week-row{ border:none; border-radius:0; background:transparent; overflow-x:auto; }
   .hw-card h3{ font-family:var(--app-font); margin:0 0 8px; font-size:17px; display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
   .hw-card h3 small{ font-size:11px; color:var(--ink-soft); font-weight:400; font-family:var(--app-font); }
   .hw-kids{ display:flex; gap:14px; }
@@ -454,6 +470,9 @@
   }
   .hw-day-col{ display:flex; flex:1 1 0; min-width:200px; }
   .hw-day-col:not(:last-child){ border-right:2px solid var(--paper-line); }
+  /* 일정표의 .time-axis-panel과 동일한 폭(36px)의 독립 열 */
+  .hw-axis-col{ flex:0 0 36px; width:36px; display:flex; }
+  .hw-axis-col .hw-time-label{ border-right:2px solid var(--paper-line); }
   .hw-time-label{
     flex-shrink:0; width:36px; writing-mode:vertical-rl; text-orientation:mixed;
     display:flex; align-items:center; justify-content:center;
@@ -484,6 +503,8 @@
     .btn{ font-size:11px; padding:5px 8px; }
     main, .legend, .hw-wrap{ padding-left:10px; padding-right:10px; }
     header{ padding:22px 12px 12px; }
+    .tab{ font-size:clamp(12px, 3.6vw, 15px); padding:7px 4px; }
+    .kid-col.tg-kid-head{ padding:5px 4px 4px; }
     .time-grid{ grid-template-columns:32px minmax(0,1fr) minmax(0,1fr); }
     .tg-event{ padding:8px 4px 8px 10px; font-size:calc(11.5px * var(--font-scale)); }
     .tg-event .name{ font-size:calc(14.5px * var(--scale-name)); }
@@ -553,9 +574,18 @@
 <div id="appRoot" style="display:none;">
 
 <header>
-  <div class="view-toggle" id="viewToggle">
-    <button type="button" class="view-toggle-btn" data-mode="mobile" id="viewMobileBtn">📱 모바일</button>
-    <button type="button" class="view-toggle-btn" data-mode="pc" id="viewPcBtn">🖥 PC</button>
+  <div class="view-toggle-row" id="viewToggleRow">
+    <div class="view-toggle" id="viewToggle">
+      <button type="button" class="view-toggle-btn" data-mode="mobile" id="viewMobileBtn">📱 모바일</button>
+      <button type="button" class="view-toggle-btn" data-mode="pc" id="viewPcBtn">🖥 PC</button>
+    </div>
+    <label class="ios-toggle-wrap" id="topBarToggleWrap" title="도구 모음 표시/숨김">
+      <span class="ios-toggle-label">도구</span>
+      <span class="ios-toggle">
+        <input type="checkbox" id="topBarToggleInput" checked>
+        <span class="ios-toggle-slider"></span>
+      </span>
+    </label>
   </div>
   <div class="kid-toggle" id="kidToggle" style="display:none;">
     <label><input type="checkbox" id="kidToggleLeehyun" checked> 이현</label>
@@ -571,19 +601,12 @@
     <div class="sync-pill" id="syncPill">🟡 Connecting…</div>
     <div class="top-bar-actions">
       <button class="btn" id="editModeBtn">✏️ 수정</button>
-      <button class="btn ghost" id="exportBtn">⬇️ 엑셀로 내보내기</button>
+      <button class="btn ghost" id="exportBtn"><svg class="excel-icon" viewBox="0 0 32 40" width="14" height="17" aria-hidden="true"><path d="M4 2h16l8 8v26a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="#EDEFF2"/><path d="M20 2l8 8h-6a2 2 0 0 1-2-2V2z" fill="#C7CBD1"/><rect x="0" y="19" width="24" height="15" rx="2" fill="#1D6F42"/><text x="12" y="30.5" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="700" fill="#fff" text-anchor="middle">X</text></svg> 엑셀 ↓</button>
       <button class="btn ghost" id="fixBtn">📌 일정 fix</button>
-      <button class="btn ghost" id="viewSnapshotsBtn">🕰️ 이전 일정 보기</button>
+      <button class="btn ghost" id="viewSnapshotsBtn">🕰️ History</button>
       <button class="btn ghost" id="fontSettingsBtn">🔤 글꼴</button>
     </div>
   </div>
-  <label class="ios-toggle-wrap" id="topBarToggleWrap" title="도구 모음 표시/숨김">
-    <span class="ios-toggle-label">도구</span>
-    <span class="ios-toggle">
-      <input type="checkbox" id="topBarToggleInput" checked>
-      <span class="ios-toggle-slider"></span>
-    </span>
-  </label>
 </div>
 
 <div class="font-popup" id="fontPopup" style="display:none;">
@@ -622,7 +645,7 @@
 <main id="panels"></main>
 
 <div class="hw-wrap" id="hwWrap">
-  <div class="hw-card">
+  <div class="hw-card" id="hwCard">
     <h3 id="hwTitle">📝 이번주 숙제 <small>월요일마다 체크만 자동 초기화돼요</small></h3>
     <div class="hw-kids" id="hwKids"></div>
   </div>
@@ -1516,6 +1539,8 @@ function renderPanels(){
   feesPanel.className = 'day-panel' + (activeDay==='fees' ? ' active' : '');
   feesPanel.appendChild(buildFeesPanel());
   panelsEl.appendChild(feesPanel);
+
+  refreshCurrentTimeLine();
 }
 
 const POINT_LABELS = ["12:30","13:00","13:30","14:00","14:30","15:00","15:30","16:00",
@@ -1523,7 +1548,7 @@ const POINT_LABELS = ["12:30","13:00","13:30","14:00","14:30","15:00","15:30","1
 function toMin(s){ const [h,m] = s.split(':').map(Number); return h*60+m; }
 const POINTS = POINT_LABELS.map(toMin);
 const N_ROWS = POINTS.length - 1;
-const ROW_H = 36;
+const ROW_H = 32;
 
 function parseTimeRange(ev){
   if(ev.time && ev.time.includes('~')){
@@ -1538,6 +1563,26 @@ function parseTimeRange(ev){
     return [h1*60+m1, h2*60+m2];
   }
   return null;
+}
+/* 엑셀 내보내기에서, 실제 일정 시간과 별개로 메모의 승차/하차 시각을 항상 시도해서
+   추출한다 (일정 시간이 이미 있어도 승차·하차 여백 칸을 그리기 위해 필요).
+   승차/하차 중 하나만 있어도 그 하나는 인식하도록 각각 독립적으로 찾는다. */
+function parsePickupDropoff(ev){
+  const text = ev.meta || '';
+  const pickM = text.match(/승차\s*(\d{1,2}):(\d{2})/);
+  const dropM = text.match(/하차\s*(\d{1,2}):(\d{2})/);
+  if(!pickM && !dropM) return null;
+  const adjustHour = (h)=> h<8 ? h+12 : h;
+  const result = { pickupMin:null, dropoffMin:null, pickupLabel:null, dropoffLabel:null };
+  if(pickM){
+    result.pickupMin = adjustHour(+pickM[1])*60 + (+pickM[2]);
+    result.pickupLabel = `${pickM[1]}:${pickM[2]}`;
+  }
+  if(dropM){
+    result.dropoffMin = adjustHour(+dropM[1])*60 + (+dropM[2]);
+    result.dropoffLabel = `${dropM[1]}:${dropM[2]}`;
+  }
+  return result;
 }
 function snapStart(min){
   let idx = 0;
@@ -1600,6 +1645,45 @@ function pxToFineRow(px){
     if(px <= FINE_CUM_Y[i+1]) return i + (px-FINE_CUM_Y[i])/(FINE_CUM_Y[i+1]-FINE_CUM_Y[i]);
   }
   return N_FINE_ROWS;
+}
+
+/* ---- 오늘 요일 칸에 현재 시각을 5분 단위로 스냅해서 파란 가로줄로 표시 ---- */
+function getTodayDayLabel(){
+  const dow = new Date().getDay();
+  for(const label in TAB_DOW){ if(TAB_DOW[label] === dow) return label; }
+  return null;
+}
+function currentTimeLinePx(){
+  const now = new Date();
+  const rawMin = now.getHours()*60 + now.getMinutes();
+  const snappedMin = Math.round(rawMin/5)*5;
+  if(snappedMin < RANGE_START || snappedMin > POINTS[POINTS.length-1]) return null;
+  return fineRowToPx((snappedMin - RANGE_START) / FINE_STEP);
+}
+function buildNowLineWrap(){
+  const wrap = document.createElement('div');
+  wrap.className = 'now-line-wrap';
+  wrap.style.gridColumn = '1 / -1';
+  wrap.style.gridRow = `2 / ${N_FINE_ROWS + 2}`;
+  const line = document.createElement('div');
+  line.className = 'now-line';
+  wrap.appendChild(line);
+  return wrap;
+}
+function refreshCurrentTimeLine(){
+  const today = getTodayDayLabel();
+  const px = today ? currentTimeLinePx() : null;
+  document.querySelectorAll('.day-panel[data-day]').forEach(panel=>{
+    const grid = panel.querySelector('.time-grid');
+    if(!grid) return;
+    let wrap = grid.querySelector('.now-line-wrap');
+    if(panel.dataset.day === today && px !== null){
+      if(!wrap){ wrap = buildNowLineWrap(); grid.appendChild(wrap); }
+      wrap.querySelector('.now-line').style.top = px + 'px';
+    } else if(wrap){
+      wrap.remove();
+    }
+  });
 }
 
 function buildTimeAxisColumn(){
@@ -2173,19 +2257,28 @@ function renderHomework(){
 
   title.style.display = 'none';
 
+  const hwCard = document.getElementById('hwCard');
+  const isHwWeekView = viewMode==='pc' && activeDay==='week';
+  if(hwCard) hwCard.classList.toggle('hw-card--flush', isHwWeekView);
+
   if(viewMode==='pc' && activeDay==='week'){
     wrapSection.style.display = '';
     kidsWrap.className = 'hw-week-row';
+
+    /* 일정표의 시간축(.time-axis-panel)과 동일하게, HW 라벨을 특정 요일 칸 안에 끼워넣지 않고
+       독립된 열로 분리해서 일정표와 폭이 정확히 100% 일치하도록 맞춘다. */
+    const axisCol = document.createElement('div');
+    axisCol.className = 'hw-axis-col';
+    const axisLabel = document.createElement('div');
+    axisLabel.className = 'hw-time-label';
+    axisLabel.textContent = 'HW';
+    axisLabel.title = '월요일마다 체크만 자동 초기화돼요';
+    axisCol.appendChild(axisLabel);
+    kidsWrap.appendChild(axisCol);
+
     days.forEach(day=>{
       const dayCol = document.createElement('div');
       dayCol.className = 'hw-day-col';
-      if(day === '월'){
-        const label = document.createElement('div');
-        label.className = 'hw-time-label';
-        label.textContent = 'HW';
-        label.title = '월요일마다 체크만 자동 초기화돼요';
-        dayCol.appendChild(label);
-      }
       const kidsRow = document.createElement('div');
       kidsRow.className = 'hw-kids';
       KIDS.filter(isKidVisible).forEach(kid=> kidsRow.appendChild(buildHwKidColumn(day, kid, false)));
@@ -2250,6 +2343,21 @@ async function exportExcel(){
     const ws = wb.addWorksheet('주간 일정표', { views:[{ state:'frozen', xSplit:1, ySplit:3 }] });
 
     const HEADER_ROWS = 3;
+    /* 엑셀 내보내기 전용 시간축: 21시~22시 사이에도 21:30을 넣어서 다른 구간과 동일하게 30분 단위로 맞춘다.
+       (화면상의 일정표 그리드는 그대로 두고, 엑셀 파일에서만 적용한다) */
+    const XLSX_POINT_LABELS = ["12:30","13:00","13:30","14:00","14:30","15:00","15:30","16:00",
+      "16:30","17:00","17:30","18:00","18:30","19:00","19:30","20:00","20:30","21:00","21:30","22:00"];
+    const XLSX_POINTS = XLSX_POINT_LABELS.map(toMin);
+    const XLSX_N_ROWS = XLSX_POINTS.length - 1;
+    function xlsxSnapStart(min){
+      let idx = 0;
+      for(let i=0;i<XLSX_POINTS.length-1;i++){ if(XLSX_POINTS[i]<=min) idx=i; }
+      return idx;
+    }
+    function xlsxSnapEnd(min){
+      for(let i=0;i<XLSX_POINTS.length;i++){ if(XLSX_POINTS[i]>=min) return i; }
+      return XLSX_N_ROWS;
+    }
     const XLSX_KIDS = KIDS.filter(isKidVisible);
     ws.getColumn(1).width = 9;
     let colIdx = 2;
@@ -2263,6 +2371,12 @@ async function exportExcel(){
     const thinBorder = { style:'thin', color:{argb:'FF000000'} };
     const borderAll = { top:thinBorder, bottom:thinBorder, left:thinBorder, right:thinBorder };
     const fill = (hex)=>({ type:'pattern', pattern:'solid', fgColor:{argb:'FF'+hex} });
+    const lightenHex = (hex, amt)=>{
+      const n = parseInt(hex, 16);
+      const mix = (c)=> Math.round(c + (255 - c) * amt);
+      const r = mix((n>>16)&255), g = mix((n>>8)&255), b = mix(n&255);
+      return [r,g,b].map(v=> v.toString(16).padStart(2,'0')).join('').toUpperCase();
+    };
 
     days.forEach(day=>{
       const c0 = dayColStart[day];
@@ -2307,10 +2421,10 @@ async function exportExcel(){
 
     for(let r=1;r<=HEADER_ROWS;r++) ws.getRow(r).height = 22;
 
-    for(let i=0;i<N_ROWS;i++){
+    for(let i=0;i<XLSX_N_ROWS;i++){
       const r = HEADER_ROWS + 1 + i;
       const cell = ws.getCell(r, 1);
-      cell.value = POINT_LABELS[i];
+      cell.value = XLSX_POINT_LABELS[i];
       cell.font = { name:XLSX_FONT, size:12, bold:true, color:{argb:'FF000000'} };
       cell.alignment = { horizontal:'center', vertical:'top' };
       cell.fill = fill('F5F0E3');
@@ -2318,7 +2432,7 @@ async function exportExcel(){
       ws.getRow(r).height = 24;
     }
 
-    for(let i=0;i<N_ROWS;i++){
+    for(let i=0;i<XLSX_N_ROWS;i++){
       const r = HEADER_ROWS + 1 + i;
       days.forEach(day=>{
         const c0 = dayColStart[day];
@@ -2334,7 +2448,7 @@ async function exportExcel(){
            일정(새 카테고리로 만든 일정 포함)이 뒤로 밀리지 않고 제 시간에 표시된다. */
         const placed = DATA[day][kid].events.map(ev=>{
           const rng = parseTimeRange(ev);
-          return { ev, sRow: rng ? snapStart(rng[0]) : null, eRow: rng ? snapEnd(rng[1]) : null };
+          return { ev, sRow: rng ? xlsxSnapStart(rng[0]) : null, eRow: rng ? xlsxSnapEnd(rng[1]) : null };
         }).sort((a,b)=>{
           const as = a.sRow===null ? Infinity : a.sRow;
           const bs = b.sRow===null ? Infinity : b.sRow;
@@ -2347,29 +2461,92 @@ async function exportExcel(){
           let eRow = p.eRow===null ? nextFree + 2 : p.eRow;
           sRow = Math.max(sRow, nextFree);
           if(eRow <= sRow) eRow = sRow + 1;
-          eRow = Math.min(eRow, N_ROWS);
-          nextFree = eRow;
+          eRow = Math.min(eRow, XLSX_N_ROWS);
+
+          /* 실제 일정 앞뒤로 승차/하차 이동시간이 있으면 연한 색 여백 칸으로 표시한다.
+             (일정 칸과 겹치지 않도록 nextFree 안쪽으로만 그리고, 뒤 여백만큼 nextFree도 밀어준다) */
+          const pd = parsePickupDropoff(p.ev);
+          let beforeRow = null, afterRow = null;
+          if(pd){
+            if(pd.pickupMin != null){
+              const pickRow = Math.max(nextFree, xlsxSnapStart(pd.pickupMin));
+              if(pickRow < sRow) beforeRow = pickRow;
+            }
+            if(pd.dropoffMin != null){
+              const dropRow = Math.min(XLSX_N_ROWS, xlsxSnapEnd(pd.dropoffMin));
+              if(dropRow > eRow) afterRow = dropRow;
+            }
+          }
+          nextFree = afterRow!=null ? afterRow : eRow;
+
+          const cat = getCategory(p.ev.cat);
+          const bg = cat.color.replace('#','');
+          const lightBg = lightenHex(bg, 0.72);
+          const padFont = { name:XLSX_FONT, size:8, italic:true, color:{argb:'FF777777'} };
+
+          if(beforeRow != null){
+            const br0 = HEADER_ROWS + 1 + beforeRow;
+            const br1 = HEADER_ROWS + sRow;
+            if(br1 > br0){ ws.mergeCells(br0, colI, br1, colI); }
+            const bc = ws.getCell(br0, colI);
+            bc.value = { richText: [{ font:padFont, text:'승차 '+(pd.pickupLabel||'') }] };
+            bc.alignment = { horizontal:'center', vertical:'middle', wrapText:true };
+            bc.fill = fill(lightBg);
+            for(let rr=br0; rr<=br1; rr++){ ws.getCell(rr, colI).border = borderAll; }
+          }
 
           const r0 = HEADER_ROWS + 1 + sRow;
           const r1 = HEADER_ROWS + Math.max(sRow, eRow - 1) + 1;
           if(r1 > r0){ ws.mergeCells(r0, colI, r1, colI); }
 
-          const lines = [];
-          if(p.ev.name) lines.push(p.ev.name);
-          if(p.ev.time) lines.push(p.ev.time);
-          if(p.ev.meta) lines.push(p.ev.meta);
+          /* 이름/시간은 기존 크기(10)를 유지하고, 메모만 더 작은 글자(8)로 따로 표시하기 위해
+             하나의 문자열이 아니라 run별로 폰트를 지정할 수 있는 rich text로 값을 구성한다. */
+          const boldFont = { name:XLSX_FONT, size:10, bold:true, color:{argb:'FF000000'} };
+          const metaFont = { name:XLSX_FONT, size:8, bold:false, color:{argb:'FF555555'} };
+          const richRuns = [];
+          if(p.ev.name) richRuns.push({ font:boldFont, text:p.ev.name });
+          if(p.ev.time) richRuns.push({ font:boldFont, text:(richRuns.length?'\n':'')+p.ev.time });
+          if(p.ev.meta) richRuns.push({ font:metaFont, text:(richRuns.length?'\n':'')+p.ev.meta });
 
-          const cat = getCategory(p.ev.cat);
-          const bg = cat.color.replace('#','');
           const cell = ws.getCell(r0, colI);
-          cell.value = lines.join('\n');
+          cell.value = richRuns.length ? { richText: richRuns } : '';
           cell.alignment = { horizontal:'center', vertical:'middle', wrapText:true };
           cell.fill = fill(bg);
-          cell.font = { name:XLSX_FONT, size:10, bold:true, color:{argb:'FF000000'} };
           for(let rr=r0; rr<=r1; rr++){ ws.getCell(rr, colI).border = borderAll; }
+
+          if(afterRow != null){
+            const ar0 = HEADER_ROWS + 1 + eRow;
+            const ar1 = HEADER_ROWS + afterRow;
+            if(ar1 > ar0){ ws.mergeCells(ar0, colI, ar1, colI); }
+            const ac = ws.getCell(ar0, colI);
+            ac.value = { richText: [{ font:padFont, text:'하차 '+(pd.dropoffLabel||'') }] };
+            ac.alignment = { horizontal:'center', vertical:'middle', wrapText:true };
+            ac.fill = fill(lightBg);
+            for(let rr=ar0; rr<=ar1; rr++){ ws.getCell(rr, colI).border = borderAll; }
+          }
         });
       });
     });
+
+    /* 일정표를 22:00 경계선까지 보이게, 마지막 시간 라벨 행을 하나 더 추가한다. */
+    const endRow = HEADER_ROWS + XLSX_N_ROWS + 1;
+    {
+      const cell = ws.getCell(endRow, 1);
+      cell.value = XLSX_POINT_LABELS[XLSX_POINT_LABELS.length - 1];
+      cell.font = { name:XLSX_FONT, size:12, bold:true, color:{argb:'FF000000'} };
+      cell.alignment = { horizontal:'center', vertical:'middle' };
+      cell.fill = fill('F5F0E3');
+      cell.border = borderAll;
+      days.forEach(day=>{
+        const c0 = dayColStart[day];
+        for(let k=0;k<XLSX_KIDS.length;k++){ ws.getCell(endRow, c0+k).border = borderAll; }
+      });
+      ws.getRow(endRow).height = 14;
+    }
+
+    /* 22:00과 숙제 표 사이에는 테두리 없는 여백 행을 하나 둬서 서로 다른 표처럼 구분한다. */
+    const spacerRow = endRow + 1;
+    ws.getRow(spacerRow).height = 10;
 
     normalizeHomework();
     const hwByDayKid = {};
@@ -2382,7 +2559,18 @@ async function exportExcel(){
       });
     });
     if(hwMaxRows > 0){
-      const hwStartRow = HEADER_ROWS + N_ROWS + 1;
+      const hwStartRow = spacerRow + 1;
+      const hwEndRow = hwStartRow + hwMaxRows - 1;
+
+      /* HTML 버전의 세로 "HW" 라벨 열과 동일하게, 왼쪽 시간축 열에 회전된 HW 라벨을 둔다. */
+      if(hwEndRow > hwStartRow) ws.mergeCells(hwStartRow, 1, hwEndRow, 1);
+      const hwLabelCell = ws.getCell(hwStartRow, 1);
+      hwLabelCell.value = 'HW';
+      hwLabelCell.font = { name:XLSX_FONT, bold:true, size:11, color:{argb:'FF6B7078'} };
+      hwLabelCell.alignment = { horizontal:'center', vertical:'middle', textRotation:90 };
+      hwLabelCell.fill = fill('EEF0F3');
+      for(let rr=hwStartRow; rr<=hwEndRow; rr++){ ws.getCell(rr,1).border = borderAll; }
+
       for(let r=0; r<hwMaxRows; r++){
         const rowNum = hwStartRow + r;
         days.forEach(day=>{
@@ -2392,6 +2580,7 @@ async function exportExcel(){
             const cell = ws.getCell(rowNum, c0+i);
             cell.alignment = { horizontal:'center', vertical:'middle', wrapText:true };
             cell.border = borderAll;
+            cell.fill = fill('FAFBFC');
             if(item){
               cell.value = (item.mark===2 ? '✓ ' : '') + (item.text || '');
               cell.font = item.mark===2
@@ -2719,6 +2908,9 @@ applyTopBarVisibility();
   hwKidsEl.addEventListener('scroll', ()=> mirror(hwKidsEl, panelsEl));
 })();
 
+/* 렌더링과 무관하게 시간이 흘러도 파란 현재시간 줄이 계속 최신 위치로 움직이도록 주기적으로 갱신 */
+setInterval(()=>{ if(typeof refreshCurrentTimeLine === 'function') refreshCurrentTimeLine(); }, 60000);
+
 async function startApp(){
   if(appStarted) return;
   appStarted = true;
@@ -2732,6 +2924,13 @@ async function startApp(){
   renderPanels();
   renderHomework();
   fbInit();
+
+  if(viewMode === 'mobile'){
+    requestAnimationFrame(()=>{
+      const tabsEl = document.getElementById('tabs');
+      if(tabsEl) tabsEl.scrollIntoView({ behavior:'auto', block:'start' });
+    });
+  }
 }
 function stopApp(){
   appStarted = false;
