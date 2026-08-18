@@ -1671,7 +1671,8 @@ function buildNowLineWrap(){
   return wrap;
 }
 function refreshCurrentTimeLine(){
-  const today = getTodayDayLabel();
+  /* PC버전에는 현재시간 줄을 표시하지 않고, 모바일에서만 보여준다. */
+  const today = viewMode === 'mobile' ? getTodayDayLabel() : null;
   const px = today ? currentTimeLinePx() : null;
   document.querySelectorAll('.day-panel[data-day]').forEach(panel=>{
     const grid = panel.querySelector('.time-grid');
