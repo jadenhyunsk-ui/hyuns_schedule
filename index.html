@@ -310,12 +310,12 @@
   /* ---- 오늘 칸에 표시되는 현재 시각 파란 줄(5분 단위 스냅) ---- */
   .now-line-wrap{ position:relative; pointer-events:none; z-index:4; }
   .now-line{
-    position:absolute; left:0; right:0; height:2px; background:#2F6FEA;
-    box-shadow:0 0 3px rgba(47,111,234,.6);
+    position:absolute; left:0; right:0; height:1px; background:rgba(47,111,234,.55);
+    box-shadow:0 0 2px rgba(47,111,234,.35);
   }
   .now-line::before{
-    content:''; position:absolute; left:-3px; top:50%; transform:translateY(-50%);
-    width:7px; height:7px; border-radius:50%; background:#2F6FEA;
+    content:''; position:absolute; left:1px; top:50%; transform:translateY(-50%);
+    width:6px; height:6px; border-radius:50%; background:rgba(47,111,234,.55);
   }
 
   .cat-dot{
@@ -2906,6 +2906,40 @@ applyTopBarVisibility();
   }
   panelsEl.addEventListener('scroll', ()=> mirror(panelsEl, hwKidsEl));
   hwKidsEl.addEventListener('scroll', ()=> mirror(hwKidsEl, panelsEl));
+})();
+
+/* 모바일 버전에서 일정표를 좌우로 스와이프하면 요일 탭이 앞뒤로 바뀌도록 한다.
+   (수정모드에서는 일정 드래그와 헷갈리지 않게 스와이프를 비활성화한다) */
+(function enableMobileDaySwipe(){
+  const panelsEl = document.getElementById('panels');
+  if(!panelsEl) return;
+  const SWIPE_THRESHOLD = 50;
+  let startX = null, startY = null, tracking = false;
+
+  panelsEl.addEventListener('touchstart', (e)=>{
+    if(viewMode !== 'mobile' || editMode || e.touches.length !== 1){ tracking = false; return; }
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    tracking = true;
+  }, { passive:true });
+
+  panelsEl.addEventListener('touchend', (e)=>{
+    if(!tracking || startX === null) return;
+    tracking = false;
+    const endX = e.changedTouches[0].clientX;
+    const endY = e.changedTouches[0].clientY;
+    const dx = endX - startX;
+    const dy = endY - startY;
+    if(Math.abs(dx) < SWIPE_THRESHOLD || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+
+    const idx = days.indexOf(activeDay);
+    if(idx === -1) return;
+    const nextIdx = idx + (dx < 0 ? 1 : -1);
+    if(nextIdx < 0 || nextIdx >= days.length) return;
+    activeDay = days[nextIdx];
+    renderPanels();
+    renderHomework();
+  }, { passive:true });
 })();
 
 /* 렌더링과 무관하게 시간이 흘러도 파란 현재시간 줄이 계속 최신 위치로 움직이도록 주기적으로 갱신 */
