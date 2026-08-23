@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>이현 · 규현 주간 일정표</title>
+<link rel="icon" type="image/png" sizes="512x512" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=Nanum+Gothic:wght@400;700;800&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Jua&display=swap" rel="stylesheet">
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@latest/dist/web/static/pretendard.css" />
@@ -57,7 +59,7 @@
     position:absolute; top:36px; left:12px; display:flex; gap:8px;
     font-size:10px; color:var(--ink-soft);
   }
-  .kid-toggle label{ display:flex; align-items:center; gap:3px; cursor:pointer; user-select:none; }
+  .kid-toggle label{ display:flex; align-items:center; gap:3px; cursor:pointer; -webkit-user-select:none; user-select:none; }
   .kid-toggle input{ accent-color:var(--teal); cursor:pointer; }
 
   /* ---- PC(주간) 보기: 월~금을 한 번에 표시, 화면 폭 꽉 채움, 왼쪽 정렬 ---- */
@@ -140,7 +142,7 @@
   .top-bar-actions{ display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; max-width:100%; }
 
   /* ---- 상단 바 도구 표시/숨김 iOS 스타일 토글 ---- */
-  .ios-toggle-wrap{ display:flex; align-items:center; gap:6px; font-size:10px; color:var(--ink-soft); cursor:pointer; user-select:none; flex-shrink:0; }
+  .ios-toggle-wrap{ display:flex; align-items:center; gap:6px; font-size:10px; color:var(--ink-soft); cursor:pointer; -webkit-user-select:none; user-select:none; flex-shrink:0; }
   .ios-toggle{ position:relative; display:inline-block; width:34px; height:20px; flex-shrink:0; }
   .ios-toggle input{ position:absolute; opacity:0; width:100%; height:100%; margin:0; cursor:pointer; }
   .ios-toggle-slider{
@@ -238,7 +240,7 @@
     flex:1; text-align:center; padding:10px 4px; font-family:var(--app-font); font-weight:700;
     font-size:clamp(14px, 4vw, 18px);
     border-radius:10px 10px 0 0; background:#ECEDF1; color:var(--ink-soft); cursor:pointer;
-    border:2px solid transparent; border-bottom:none; transition:all .18s ease; user-select:none;
+    border:2px solid transparent; border-bottom:none; transition:all .18s ease; -webkit-user-select:none; user-select:none;
     white-space:nowrap;
   }
   .tab:hover{ background:#E9EBEF; }
@@ -408,6 +410,7 @@
   }
   .font-popup-row + .font-popup-row{ margin-top:12px; }
   .font-popup-label{ display:block; font-size:11px; font-weight:600; color:var(--ink-soft); margin-bottom:6px; }
+  .font-popup-label.font-popup-label--tight{ margin-bottom:0; }
   .font-popup-options{ display:flex; flex-wrap:wrap; gap:6px; }
   .font-opt-btn{
     font-family:var(--app-font); font-size:12px; padding:6px 10px; border-radius:8px;
@@ -488,7 +491,7 @@
   .hw-check{
     width:17px; height:17px; flex-shrink:0; border-radius:5px; border:2px solid var(--paper-line);
     cursor:pointer; display:flex; align-items:center; justify-content:center;
-    font-size:11px; font-weight:700; color:#fff; background:#fff; user-select:none;
+    font-size:11px; font-weight:700; color:#fff; background:#fff; -webkit-user-select:none; user-select:none;
   }
   .hw-check.checked{ background:var(--teal); border-color:var(--teal); }
   .hw-text{ flex:1; font-size:calc(13px * var(--font-scale)); min-width:0; }
@@ -591,7 +594,7 @@
     <label><input type="checkbox" id="kidToggleLeehyun" checked> 이현</label>
     <label><input type="checkbox" id="kidToggleGyuhyun" checked> 규현</label>
   </div>
-  <button class="btn ghost logout-corner" id="logoutBtn">로그아웃</button>
+  <button type="button" class="btn ghost logout-corner" id="logoutBtn">로그아웃</button>
   <div class="eyebrow" id="eyebrow"></div>
   <h1 id="mainTitle">이현 · 규현 일정표</h1>
 </header>
@@ -600,11 +603,11 @@
   <div class="top-bar-collapsible" id="topBarCollapsible">
     <div class="sync-pill" id="syncPill">🟡 Connecting…</div>
     <div class="top-bar-actions">
-      <button class="btn" id="editModeBtn">✏️ 수정</button>
-      <button class="btn ghost" id="exportBtn"><svg class="excel-icon" viewBox="0 0 32 40" width="14" height="17" aria-hidden="true"><path d="M4 2h16l8 8v26a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="#EDEFF2"/><path d="M20 2l8 8h-6a2 2 0 0 1-2-2V2z" fill="#C7CBD1"/><rect x="0" y="19" width="24" height="15" rx="2" fill="#1D6F42"/><text x="12" y="30.5" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="700" fill="#fff" text-anchor="middle">X</text></svg> 엑셀 ↓</button>
-      <button class="btn ghost" id="fixBtn">📌 일정 fix</button>
-      <button class="btn ghost" id="viewSnapshotsBtn">🕰️ History</button>
-      <button class="btn ghost" id="fontSettingsBtn">🔤 글꼴</button>
+      <button type="button" class="btn" id="editModeBtn">✏️ 수정</button>
+      <button type="button" class="btn ghost" id="exportBtn"><svg class="excel-icon" viewBox="0 0 32 40" width="14" height="17" aria-hidden="true"><path d="M4 2h16l8 8v26a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="#EDEFF2"/><path d="M20 2l8 8h-6a2 2 0 0 1-2-2V2z" fill="#C7CBD1"/><rect x="0" y="19" width="24" height="15" rx="2" fill="#1D6F42"/><text x="12" y="30.5" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="700" fill="#fff" text-anchor="middle">X</text></svg> 엑셀 ↓</button>
+      <button type="button" class="btn ghost" id="fixBtn">📌 일정 fix</button>
+      <button type="button" class="btn ghost" id="viewSnapshotsBtn">🕰️ History</button>
+      <button type="button" class="btn ghost" id="fontSettingsBtn">🔤 글꼴</button>
     </div>
   </div>
 </div>
@@ -624,19 +627,19 @@
     </div>
   </div>
   <div class="font-popup-row">
-    <div class="font-slider-head"><span class="font-popup-label" style="margin-bottom:0;">전체 글자(학원비·숙제 등)</span><span class="font-slider-val" id="scaleGeneralVal">100%</span></div>
+    <div class="font-slider-head"><span class="font-popup-label font-popup-label--tight">전체 글자(학원비·숙제 등)</span><span class="font-slider-val" id="scaleGeneralVal">100%</span></div>
     <input type="range" class="font-slider" id="scaleGeneralInput" min="80" max="160" step="5" value="100">
   </div>
   <div class="font-popup-row">
-    <div class="font-slider-head"><span class="font-popup-label" style="margin-bottom:0;">시간 크기</span><span class="font-slider-val" id="scaleTimeVal">100%</span></div>
+    <div class="font-slider-head"><span class="font-popup-label font-popup-label--tight">시간 크기</span><span class="font-slider-val" id="scaleTimeVal">100%</span></div>
     <input type="range" class="font-slider" id="scaleTimeInput" min="80" max="160" step="5" value="100">
   </div>
   <div class="font-popup-row">
-    <div class="font-slider-head"><span class="font-popup-label" style="margin-bottom:0;">카테고리(이름) 크기</span><span class="font-slider-val" id="scaleNameVal">100%</span></div>
+    <div class="font-slider-head"><span class="font-popup-label font-popup-label--tight">카테고리(이름) 크기</span><span class="font-slider-val" id="scaleNameVal">100%</span></div>
     <input type="range" class="font-slider" id="scaleNameInput" min="80" max="160" step="5" value="100">
   </div>
   <div class="font-popup-row">
-    <div class="font-slider-head"><span class="font-popup-label" style="margin-bottom:0;">메모 크기</span><span class="font-slider-val" id="scaleMetaVal">100%</span></div>
+    <div class="font-slider-head"><span class="font-popup-label font-popup-label--tight">메모 크기</span><span class="font-slider-val" id="scaleMetaVal">100%</span></div>
     <input type="range" class="font-slider" id="scaleMetaInput" min="80" max="160" step="5" value="100">
   </div>
 </div>
@@ -2334,14 +2337,8 @@ function buildHomeworkItem(item, idx){
   return row;
 }
 
-async function exportExcel(){
-  const btn = document.getElementById('exportBtn');
-  const originalLabel = btn.textContent;
-  btn.textContent = '만드는 중...';
-  btn.disabled = true;
-  try{
-    const wb = new ExcelJS.Workbook();
-    const ws = wb.addWorksheet('주간 일정표', { views:[{ state:'frozen', xSplit:1, ySplit:3 }] });
+function buildScheduleSheet(wb, sheetName, XLSX_KIDS){
+    const ws = wb.addWorksheet(sheetName, { views:[{ state:'frozen', xSplit:1, ySplit:3 }] });
 
     const HEADER_ROWS = 3;
     /* 엑셀 내보내기 전용 시간축: 21시~22시 사이에도 21:30을 넣어서 다른 구간과 동일하게 30분 단위로 맞춘다.
@@ -2359,7 +2356,6 @@ async function exportExcel(){
       for(let i=0;i<XLSX_POINTS.length;i++){ if(XLSX_POINTS[i]>=min) return i; }
       return XLSX_N_ROWS;
     }
-    const XLSX_KIDS = KIDS.filter(isKidVisible);
     ws.getColumn(1).width = 9;
     let colIdx = 2;
     const dayColStart = {};
@@ -2502,7 +2498,7 @@ async function exportExcel(){
 
           /* 이름/시간은 기존 크기(10)를 유지하고, 메모만 더 작은 글자(8)로 따로 표시하기 위해
              하나의 문자열이 아니라 run별로 폰트를 지정할 수 있는 rich text로 값을 구성한다. */
-          const boldFont = { name:XLSX_FONT, size:10, bold:true, color:{argb:'FF000000'} };
+          const boldFont = { name:XLSX_FONT, size:11, bold:true, color:{argb:'FF000000'} };
           const metaFont = { name:XLSX_FONT, size:8, bold:false, color:{argb:'FF555555'} };
           const richRuns = [];
           if(p.ev.name) richRuns.push({ font:boldFont, text:p.ev.name });
@@ -2593,6 +2589,21 @@ async function exportExcel(){
         ws.getRow(rowNum).height = 20;
       }
     }
+}
+
+async function exportExcel(){
+  const btn = document.getElementById('exportBtn');
+  const originalLabel = btn.textContent;
+  btn.textContent = '만드는 중...';
+  btn.disabled = true;
+  try{
+    const wb = new ExcelJS.Workbook();
+    const allKids = KIDS.filter(isKidVisible);
+
+    /* "전체" 시트 + 이현/규현 각각 단독 시트, 총 3개 시트로 내보낸다.
+       (숨김 처리된 아이는 전체 시트뿐 아니라 개별 시트도 만들지 않는다) */
+    buildScheduleSheet(wb, '전체', allKids);
+    allKids.forEach(kid=> buildScheduleSheet(wb, kid, [kid]));
 
     const buffer = await wb.xlsx.writeBuffer();
     const blob = new Blob([buffer], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
