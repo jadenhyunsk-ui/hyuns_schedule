@@ -1567,26 +1567,6 @@ function parseTimeRange(ev){
   }
   return null;
 }
-/* 엑셀 내보내기에서, 실제 일정 시간과 별개로 메모의 승차/하차 시각을 항상 시도해서
-   추출한다 (일정 시간이 이미 있어도 승차·하차 여백 칸을 그리기 위해 필요).
-   승차/하차 중 하나만 있어도 그 하나는 인식하도록 각각 독립적으로 찾는다. */
-function parsePickupDropoff(ev){
-  const text = ev.meta || '';
-  const pickM = text.match(/승차\s*(\d{1,2}):(\d{2})/);
-  const dropM = text.match(/하차\s*(\d{1,2}):(\d{2})/);
-  if(!pickM && !dropM) return null;
-  const adjustHour = (h)=> h<8 ? h+12 : h;
-  const result = { pickupMin:null, dropoffMin:null, pickupLabel:null, dropoffLabel:null };
-  if(pickM){
-    result.pickupMin = adjustHour(+pickM[1])*60 + (+pickM[2]);
-    result.pickupLabel = `${pickM[1]}:${pickM[2]}`;
-  }
-  if(dropM){
-    result.dropoffMin = adjustHour(+dropM[1])*60 + (+dropM[2]);
-    result.dropoffLabel = `${dropM[1]}:${dropM[2]}`;
-  }
-  return result;
-}
 function snapStart(min){
   let idx = 0;
   for(let i=0;i<POINTS.length-1;i++){ if(POINTS[i]<=min) idx=i; }
@@ -2368,12 +2348,6 @@ function buildScheduleSheet(wb, sheetName, XLSX_KIDS){
     const thinBorder = { style:'thin', color:{argb:'FF000000'} };
     const borderAll = { top:thinBorder, bottom:thinBorder, left:thinBorder, right:thinBorder };
     const fill = (hex)=>({ type:'pattern', pattern:'solid', fgColor:{argb:'FF'+hex} });
-    const lightenHex = (hex, amt)=>{
-      const n = parseInt(hex, 16);
-      const mix = (c)=> Math.round(c + (255 - c) * amt);
-      const r = mix((n>>16)&255), g = mix((n>>8)&255), b = mix(n&255);
-      return [r,g,b].map(v=> v.toString(16).padStart(2,'0')).join('').toUpperCase();
-    };
 
     days.forEach(day=>{
       const c0 = dayColStart[day];
@@ -2459,38 +2433,7 @@ function buildScheduleSheet(wb, sheetName, XLSX_KIDS){
           sRow = Math.max(sRow, nextFree);
           if(eRow <= sRow) eRow = sRow + 1;
           eRow = Math.min(eRow, XLSX_N_ROWS);
-
-          /* 실제 일정 앞뒤로 승차/하차 이동시간이 있으면 연한 색 여백 칸으로 표시한다.
-             (일정 칸과 겹치지 않도록 nextFree 안쪽으로만 그리고, 뒤 여백만큼 nextFree도 밀어준다) */
-          const pd = parsePickupDropoff(p.ev);
-          let beforeRow = null, afterRow = null;
-          if(pd){
-            if(pd.pickupMin != null){
-              const pickRow = Math.max(nextFree, xlsxSnapStart(pd.pickupMin));
-              if(pickRow < sRow) beforeRow = pickRow;
-            }
-            if(pd.dropoffMin != null){
-              const dropRow = Math.min(XLSX_N_ROWS, xlsxSnapEnd(pd.dropoffMin));
-              if(dropRow > eRow) afterRow = dropRow;
-            }
-          }
-          nextFree = afterRow!=null ? afterRow : eRow;
-
-          const cat = getCategory(p.ev.cat);
-          const bg = cat.color.replace('#','');
-          const lightBg = lightenHex(bg, 0.72);
-          const padFont = { name:XLSX_FONT, size:8, italic:true, color:{argb:'FF777777'} };
-
-          if(beforeRow != null){
-            const br0 = HEADER_ROWS + 1 + beforeRow;
-            const br1 = HEADER_ROWS + sRow;
-            if(br1 > br0){ ws.mergeCells(br0, colI, br1, colI); }
-            const bc = ws.getCell(br0, colI);
-            bc.value = { richText: [{ font:padFont, text:'승차 '+(pd.pickupLabel||'') }] };
-            bc.alignment = { horizontal:'center', vertical:'middle', wrapText:true };
-            bc.fill = fill(lightBg);
-            for(let rr=br0; rr<=br1; rr++){ ws.getCell(rr, colI).border = borderAll; }
-          }
+          nextFree = eRow;
 
           const r0 = HEADER_ROWS + 1 + sRow;
           const r1 = HEADER_ROWS + Math.max(sRow, eRow - 1) + 1;
@@ -2505,22 +2448,13 @@ function buildScheduleSheet(wb, sheetName, XLSX_KIDS){
           if(p.ev.time) richRuns.push({ font:boldFont, text:(richRuns.length?'\n':'')+p.ev.time });
           if(p.ev.meta) richRuns.push({ font:metaFont, text:(richRuns.length?'\n':'')+p.ev.meta });
 
+          const cat = getCategory(p.ev.cat);
+          const bg = cat.color.replace('#','');
           const cell = ws.getCell(r0, colI);
           cell.value = richRuns.length ? { richText: richRuns } : '';
           cell.alignment = { horizontal:'center', vertical:'middle', wrapText:true };
           cell.fill = fill(bg);
           for(let rr=r0; rr<=r1; rr++){ ws.getCell(rr, colI).border = borderAll; }
-
-          if(afterRow != null){
-            const ar0 = HEADER_ROWS + 1 + eRow;
-            const ar1 = HEADER_ROWS + afterRow;
-            if(ar1 > ar0){ ws.mergeCells(ar0, colI, ar1, colI); }
-            const ac = ws.getCell(ar0, colI);
-            ac.value = { richText: [{ font:padFont, text:'하차 '+(pd.dropoffLabel||'') }] };
-            ac.alignment = { horizontal:'center', vertical:'middle', wrapText:true };
-            ac.fill = fill(lightBg);
-            for(let rr=ar0; rr<=ar1; rr++){ ws.getCell(rr, colI).border = borderAll; }
-          }
         });
       });
     });
